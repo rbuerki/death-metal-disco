@@ -112,8 +112,8 @@ def go_now(artist_name, album_name):
     audio_features = get_audio_features(tracklist)
     audio_features_df = build_audio_feature_df(audio_features)
     album_features = calculate_mean_values(audio_features_df)
-    print(audio_features_df)
-    print(album_features)
+
+    return album_features
 
 
-go_now(artist_name, album_name)
+album_features = go_now(artist_name, album_name)
