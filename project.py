@@ -12,9 +12,6 @@ ccm = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID,
                                client_secret=SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=ccm)
 
-album_name = ""
-artist_name = ""
-
 
 def get_album_uri(artist_name, album_name):
     """Request the Spotify URI for a specific album.
@@ -62,8 +59,8 @@ def get_audio_features(tracklist, feature_list):
     Args:
         tracklist (list): List of track URI strings, output of
             get_album_tracklist function
-        feature_list (list): List of audio feature names to be
-            returned, filters the relevant ones.
+        feature_list (list): List of strings containing the audio feature
+            names to be returned (passed from create_album_data function)
 
     Returns:
         pd.DataFrame: Row-wise representation of relevant audio features
@@ -92,13 +89,35 @@ def calculate_mean_feature_values(audio_features):
     return album_features
 
 
+def go_and_request(artist_name, album_name, feature_list):
+    """Combine all the different function and request the audio
+    features for an album from the Spotify API, calculate and
+    return the mean values.
+
+    Args:
+        artist_name (str): Name of the artist
+        album_name (str): Name of the album
+        feature_list (list): List of strings containing the names
+            of the audio features to be returned, passed from
+            create_album_data function
+
+    Returns:
+        pd.Series: Mean of audio features for the entire album
+    """
+    album_uri = get_album_uri(artist_name, album_name)
+    tracklist = get_album_tracklist(album_uri)
+    audio_features = get_audio_features(tracklist)
+    album_features = calculate_mean_feature_values(audio_features)
+    return album_features
+
+
 def load_collection(collection_path, collection_cols, collection_genres=None):
     """Load the original collection file which lists all albums.
 
     Args:
         collection_path (str): Path pointing to the xlsx-file
         collection_cols (list): List of strings containing the column names to be
-            included in the returned file
+            included in the returned file, first two have to be "Artist" and "Title"
         collection_genres (list): If a list of genre strings is passed then the
             albums returned will be filtered accordingly (default=None)
 
@@ -113,10 +132,13 @@ def load_collection(collection_path, collection_cols, collection_genres=None):
     else:
         collection = collection[collection_cols]
 
+    assert (collection.columns[0] == "Artist") & (collection.columns[1] == "Title"), \
+        "The 1st and 2nd columns of the DataFrame must be 'Artist' and 'Title'."
+
     return collection
 
 
-def create_albums_data(collection, feature_cols):
+def create_albums_data(collection, feature_list):
     """For every album in collection request the Spotify audio features (mean of the
     songs) and return them as new columns, added to the the original collection
     DataFrame.
@@ -124,8 +146,8 @@ def create_albums_data(collection, feature_cols):
     Args:
         collection (DataFrame): Collection DataFrame, output of
             'load collection' function
-        feature_cols (list): List of strings containing the names of the audio
-            features to be returned
+        feature_list (list): List of strings containing the names of the audio
+            features to be returned, filters the relevant ones
 
     Returns:
        pd.DataFrame: Combination of the original collection DataFrame and the
@@ -133,24 +155,15 @@ def create_albums_data(collection, feature_cols):
     """
 
     data_list = []
-    for album in album_df.itertuples():
+    for album in collection.itertuples():
         try:
-            audio_features = go_now(album[1], album[2])
+            audio_features = go_and_request(album[1], album[2])
             data_list.append(audio_features)
         except IOError:
-            print(f"{album[2]} not found on Spotify")
-            data_list.append(pd.Series(np.zeros(len(df_cols))))
+            print(f"{album[1]} - {album[2]} NOT FOUND on Spotify")
+            data_list.append(pd.Series(np.zeros(len(feature_list))))
 
-    data_df = pd.DataFrame(np.vstack(data_list), columns=df_cols)
-    data_df = pd.concat([album_df.reset_index(drop=True), data_df], axis=1)
-    
+    data_df = pd.DataFrame(np.vstack(data_list), columns=feature_list)
+    data_df = pd.concat([collection.reset_index(drop=True), data_df], axis=1)
+
     return data_df
-
-
-
-def go_now(artist_name, album_name):
-    album_uri = get_album_uri(artist_name, album_name)
-    tracklist = get_album_tracklist(album_uri)
-    audio_features = get_audio_features(tracklist)
-    album_features = calculate_mean_feature_values(audio_features)
-    return album_features
