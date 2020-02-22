@@ -9,3 +9,21 @@ collection_cols = ["Artist", "Titel"]
 
 # Genre(s) to load (list or None, if all albums are to be loaded)
 collection_genres = ["Death Metal"]
+
+
+# Audio features
+# --------------
+
+# Audio features to request (list)
+feature_list = ['danceability',
+                'energy',
+                'key',
+                'mode',
+                'instrumentalness',
+                'valence',
+                'tempo',
+                'loudness',
+                'duration_ms',
+                ]
+
+#
