@@ -106,7 +106,7 @@ def go_and_request(artist_name, album_name, feature_list):
     """
     album_uri = get_album_uri(artist_name, album_name)
     tracklist = get_album_tracklist(album_uri)
-    audio_features = get_audio_features(tracklist)
+    audio_features = get_audio_features(tracklist, feature_list)
     album_features = calculate_mean_feature_values(audio_features)
     return album_features
 
@@ -157,9 +157,9 @@ def create_albums_data(collection, feature_list):
     data_list = []
     for album in collection.itertuples():
         try:
-            audio_features = go_and_request(album[1], album[2])
+            audio_features = go_and_request(album[1], album[2], feature_list)
             data_list.append(audio_features)
-        except IOError:
+        except IndexError:
             print(f"{album[1]} - {album[2]} NOT FOUND on Spotify")
             data_list.append(pd.Series(np.zeros(len(feature_list))))
 
