@@ -108,6 +108,7 @@ def go_and_request(artist_name, album_name, feature_list):
     tracklist = get_album_tracklist(album_uri)
     audio_features = get_audio_features(tracklist, feature_list)
     album_features = calculate_mean_feature_values(audio_features)
+
     return album_features
 
 
