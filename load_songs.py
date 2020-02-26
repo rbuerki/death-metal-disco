@@ -55,6 +55,7 @@ def create_songs_data(collection, feature_list):
             print(f"{album[1]} - {album[2]} NOT FOUND on Spotify")
 
     data_df = pd.concat(data_list, ignore_index=True)
-    data_df.columns = ['Artist', 'Album'] + feature_list
+    data_df.columns = feature_list + ['Artist', 'Album']
+    data_df = data_df.reindex(columns=['Artist', 'Album'] + feature_list)
 
     return data_df
