@@ -118,7 +118,7 @@ def load_collection(collection_path, collection_cols, collection_genres=None):
     Args:
         collection_path (str): Path pointing to the xlsx-file
         collection_cols (list): List of strings containing the column names to be
-            included in the returned file, first two have to be "Artist" and "Title"
+            included in the returned file, first two have to be "Artist" and "Album"
         collection_genres (list): If a list of genre strings is passed then the
             albums returned will be filtered accordingly (default=None)
 
@@ -133,8 +133,8 @@ def load_collection(collection_path, collection_cols, collection_genres=None):
     else:
         collection = collection[collection_cols]
 
-    assert (collection.columns[0] == "Artist") & (collection.columns[1] == "Title"), \
-        "The 1st and 2nd columns of the DataFrame must be 'Artist' and 'Title'."
+    assert (collection.columns[0] == "Artist") & (collection.columns[1] == "Album"), \
+        "The 1st and 2nd columns of the DataFrame must be 'Artist' and 'Album'."
 
     return collection
 
