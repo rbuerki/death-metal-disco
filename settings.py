@@ -2,7 +2,7 @@
 # -----------------------
 
 # Path of collection data file (str, pointing to .xlsx file)
-collection_path = "data/raw/dm_records_20-02-17.xlsx"
+collection_path = "data/raw/dm_records_20-03-02.xlsx"
 
 # Columns from collection file to include in Album-DataFrame (list)
 collection_cols = ["Artist", "Album"]
@@ -26,4 +26,13 @@ feature_list = ['danceability',
                 'duration_ms',
                 ]
 
-#
+
+# Outlier removal
+drop_outliers = True
+IQR_dist = 1.5
+outlier_thx = 2
+
+args_outliers = [drop_outliers,
+                 IQR_dist,
+                 outlier_thx,
+                 ]
