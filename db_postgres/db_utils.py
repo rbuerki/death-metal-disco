@@ -1,28 +1,33 @@
 import logging
 import psycopg2
-from configparser import ConfigParser
+import configparser
 
 
-def _config(filename="cofig.cfg", section="POSTGRES"):
-    """Return necessary parameters for connecting to the database.
-    (This function is called within `connect`.)
+def _config(filepath="cofig.cfg", section="POSTGRES"):
+    """Read a config file and return the parameters 
+    of the selected section. (This function is called 
+    within `connect`.)
     """
-    parser = ConfigParser()
-    parser.read(filename)
+    config = configparser.ConfigParser()
+    try:
+        config.read(filepath)
+    except FileNotFoundError as e:
+        print(f"Please check the path to the config file: {e}")
+        raise
 
     db_params = {}
-    if parser.has_section(section):
-        params = parser.items(section)
+    if config.has_section(section):
+        params = config.items(section)
         for param in params:
             db_params[param[0]] = param[1]
     else:
-        raise Exception(f"Section {section} not found in {filename}.")
+        raise Exception(f"Section {section} not found in {filepath}.")
 
     return db_params
 
 
 def connect():
-    """Connect to the PostgreSQL database server. 
+    """Connect to the PostgreSQL database server.
     Return cursor and connection.
     """
     conn = None
