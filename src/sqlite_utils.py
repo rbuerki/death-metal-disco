@@ -31,9 +31,7 @@ def _config(filepath: Path = CONFIG_PATH, section: str = SECTION) -> Dict:
     return db_params
 
 
-def connect(
-    path: str,
-) -> Tuple[Optional[sqlite3.Connection], Optional[sqlite3.Cursor]]:
+def connect() -> Tuple[Optional[sqlite3.Connection], Optional[sqlite3.Cursor]]:
     """Connect to the SQLite database (file) and return the
     connection. Note: By setting `isolation_level` = None in the
     connec() call, the auto commit mode is activated.

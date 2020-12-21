@@ -12,6 +12,7 @@ import sql_statements
 PATH_TO_COLLECTION = Path(
     r"C:\Users\r2d4\OneDrive\_raph\sounds\Collection\collection_albums.xlsx"
 )
+PATH_TO_DB = Path()
 
 
 def load_albums_from_xlsx(
@@ -42,7 +43,7 @@ def load_albums_into_database(
 
 
 def main(path=PATH_TO_COLLECTION):
-    conn = sqlite_utils.connect()
+    conn, _ = sqlite_utils.connect()
     sqlite_utils.execute_query(conn, sql_statements.create_albums)
     df = load_albums_from_xlsx(path)
     load_albums_into_database(conn, df, "albums")
