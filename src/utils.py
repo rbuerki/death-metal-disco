@@ -1,7 +1,12 @@
 import configparser
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
+
+import sqlalchemy
+from sqlalchemy.orm import sessionmaker
+
+CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
 
 
 def read_config_return_dict(filepath: Path, section: str) -> Dict:
@@ -51,3 +56,35 @@ def read_config_return_str(filepath: Path, section: str) -> str:
             raise ValueError(f"Section {section} not found in {filepath}.")
 
         return db_param
+
+
+def create_engine(rel_path: Union[Path, str]) -> sqlalchemy.engine.Engine:
+    """Create an engine as factory and pool forthe DB connections."""
+    full_path = Path.cwd().parent / rel_path
+    print(full_path)
+    conn_str = f"sqlite:///{full_path}"
+    engine = sqlalchemy.create_engine(conn_str)
+    return engine
+
+
+def create_session(
+    engine: sqlalchemy.engine.Engine,
+) -> sqlalchemy.orm.session.Session:
+    """Define a Session class bound to the engine and
+    instantiate a session object as workspace for
+    all ORM operations.
+    """
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
+
+
+def create_DB_anew(
+    engine: sqlalchemy.engine.Engine,
+    Base: sqlalchemy.ext.declarative.api.DeclarativeMeta,
+):
+    """Drop all existing tables from the database
+    and create them anew.
+    """
+    Base.metadata.drop_all(engine, checkfirst=False)
+    Base.metadata.create_all(engine)
