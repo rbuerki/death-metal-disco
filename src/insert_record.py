@@ -1,9 +1,6 @@
 import collections
 from pathlib import Path
-from typing import Union
-
-import sqlalchemy
-from sqlalchemy.orm import sessionmaker
+from typing import Dict
 
 from src.db_declaration import (
     Artist,
@@ -57,131 +54,117 @@ TEST_DATA = RecordData(
 )
 
 
-def add_new_record(session, record_data: RecordData):  # TODO
-    """Add a new record to the DB."""
+def add_new_record(session, record_data: Dict):
+    """Add a new record to the DB. The record data is passed as
+    a dictionary. This function can be applied during batch
+    uploads (initial data ingestion) or for adding singe new
+    records later on.
+    """
 
-    r_artist = record_data.artist  # TODO Id or name in table???
-    r_title = record_data.title
-    r_format = record_data.format  # TODO
-    r_genre = record_data.genre  # TODO
-    r_label = record_data.label
+    r_artist = record_data["artist"]
+    r_title = record_data["title"]
+    r_format = record_data["format"]
+    r_genre = record_data["genre"]
+    r_label = record_data["label"]
+
     # Check if record already exists
     record = (
         session.query(Record)
         .join(Artist)
         .filter(
-            (Record.title == r_title),  # TODO lower ... cannot call directly
-            # (Record.labels.any(Label.label_name == r_label)),
-            # (Artist.artist_name == r_artist),
+            (str(Record.title).lower() == r_title.lower()),
+            (str(Artist.artist_name).lower() == r_artist.lower())
+            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
         )
         .one_or_none()
     )
-    # Does the book by the author and publisher already exist?
+
     if record is not None:
-        print("Record is already existing.")
+        print("Record already exists, nothing happens.")
         return
 
-    # # Get the record by the artist
-    # record = (
-    #     session.query(Record)
-    #     .join(Artist)
-    #     .filter(
-    #         (Record.title.lower() == r_title.lower()),
-    #         (Record.labels.any(Label.label_name == r_label)),
-    #         (Artist.artist_name == r_artist),
-    #     )
-    #     .one_or_none()
-    # )
-
-    # Create the new record if needed
     if record is None:
         record = Record(
-            title=record_data.title,
-            year=record_data.year,
-            vinyl_color=record_data.vinyl_color,
-            lim_edition=record_data.lim_edition,
-            number=record_data.number,
-            remarks=record_data.remarks,
-            purchase_date=record_data.purchase_date,
-            price=record_data.price,
-            digitized=record_data.digitized,
-            rating=record_data.rating,
-            active=record_data.active,
+            title=record_data["title"],
+            year=record_data["year"],
+            vinyl_color=record_data["vinyl_color"],
+            lim_edition=record_data["lim_edition"],
+            number=record_data["number"],
+            remarks=record_data["remarks"],
+            purchase_date=record_data["purchase_date"],
+            price=record_data["price"],
+            digitized=record_data["digitized"],
+            rating=record_data["rating"],
+            active=record_data["active"],
         )
 
-    # Get the artist
+    # Check if the artist already exists or has to be created
     artist = (
         session.query(Artist)
         .filter(Artist.artist_name == r_artist)
         .one_or_none()
     )
-    # Do we need to create the artist?
     if artist is None:
         artist = Artist(artist_name=r_artist, artist_country=None)
         session.add(artist)
 
-    # Get the format
+    # Check if the format already exists or has to be created
     vinyl_format = (
         session.query(VinylFormat)
         .filter(VinylFormat.format_name == r_format)
         .one_or_none()
     )
-    # Do we need to create the format?
     if vinyl_format is None:
         vinyl_format = VinylFormat(format_name=r_format)
         session.add(vinyl_format)
 
-    # Get the genre
+    # Check if the genre already exists or has to be created
     genre = (
         session.query(Genre).filter(Genre.genre_name == r_genre).one_or_none()
     )
-    # Do we need to create the genre?
     if genre is None:
         genre = Genre(genre_name=r_genre)
         session.add(genre)
 
-    # Get the label
+    # Check if the label already exists or has to be created
     label = (
         session.query(Label).filter(Label.label_name == r_label).one_or_none()
     )
-    # Do we need to create the label?
     if label is None:
         label = Label(label_name=r_label)
         session.add(label)
 
-    # Initialize the book relationships
+    # Finally: Initialize the record relationships
     record.artist = artist
     record.genre = genre
     record.format = vinyl_format
     record.genre = genre
-    record.labels.append(label)
+    record.labels.append(label)  # many to many  TODO this does not work yet
 
     session.add(record)
-
-    # Commit to the database
     session.commit()
 
 
-def connect_to_db(rel_path: Union[Path, str]) -> sqlalchemy.engine.Engine:
-    """Connect to SQLite DB using a relative path from root."""
-    full_path = Path.cwd() / rel_path
-    print(full_path)
-    conn_str = f"sqlite:///{full_path}"
-    engine = sqlalchemy.create_engine(conn_str)
-    return engine
+# def connect_to_db(rel_path: Union[Path, str]) -> sqlalchemy.engine.Engine:
+#     """Connect to SQLite DB using a relative path from root."""
+#     full_path = Path.cwd() / rel_path
+#     print(full_path)
+#     conn_str = f"sqlite:///{full_path}"
+#     engine = sqlalchemy.create_engine(conn_str)
+#     return engine
 
 
-def main():
-    rel_path = utils.read_config_return_str(CONFIG_PATH, "SQLITE")
-    engine = connect_to_db(rel_path)
-    DBSession = sessionmaker(bind=engine)
-    session = DBSession()
-    # session = sessionmaker().configure(bind=engine)
-    add_new_record(
-        session, TEST_DATA
-    )  # TODO I can add.all(), see tutorial sqlalchemy
-    session.close()
+# def main():
+#     rel_path = utils.read_config_return_str(CONFIG_PATH, "SQLITE")
+#     engine = connect_to_db(rel_path)
+#     DBSession = sessionmaker(bind=engine)
+#     session = DBSession()
+#     # session = sessionmaker().configure(bind=engine)
+#     add_new_record(
+#         session, TEST_DATA
+#     )  # TODO I can add.all(), see tutorial sqlalchemy
+#     session.close()
 
 
-if __name__ == main():
-    main()
+# if __name__ == main():
+#     main()
