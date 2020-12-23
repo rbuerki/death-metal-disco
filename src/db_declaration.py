@@ -18,7 +18,7 @@ class Record(Base):
     format_id = Column("format_id", INTEGER, ForeignKey("formats.format_id"))
     vinyl_color = Column("vinyl_color", TEXT)
     lim_edition = Column("lim_edition", TEXT)
-    number = Column("number", INTEGER)
+    number = Column("number", TEXT)
     remarks = Column("remarks", TEXT)
     purchase_date = Column("purchase_date", TEXT, nullable=False)
     price = Column("price", REAL, nullable=False)

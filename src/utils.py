@@ -6,8 +6,6 @@ from typing import Dict, Optional, Tuple, Union
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
-
 
 def read_config_return_dict(filepath: Path, section: str) -> Dict:
     """Read a config file section and return a dict of
@@ -81,7 +79,7 @@ def create_session(
 
 def create_DB_anew(
     engine: sqlalchemy.engine.Engine,
-    Base: sqlalchemy.ext.declarative.api.DeclarativeMeta,
+    Base,  #: sqlalchemy.ext.declarative.api.DeclarativeMeta],
 ):
     """Drop all existing tables from the database
     and create them anew.
