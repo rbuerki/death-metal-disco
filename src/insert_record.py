@@ -9,8 +9,6 @@ from src.db_declaration import (
     Record,
     VinylFormat,
 )
-from src import utils
-
 
 CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
 
@@ -72,15 +70,17 @@ def add_new_record(session, record_data: Dict):
         session.query(Record)
         .join(Artist)
         .filter(
-            (str(Record.title).lower() == r_title.lower()),
-            (str(Artist.artist_name).lower() == r_artist.lower())
+            (Record.title.ilike(r_title)),
+            (Artist.artist_name.ilike(r_artist))
             # (Record.label_ids.any(Label.label_name == r_label)),  TODO
         )
         .one_or_none()
     )
 
     if record is not None:
-        print("Record already exists, nothing happens.")
+        print(
+            f"Record '{r_title}' by {r_artist} already exists, insert skipped."
+        )  # TODO Update might be better
         return
 
     if record is None:
@@ -101,7 +101,7 @@ def add_new_record(session, record_data: Dict):
     # Check if the artist already exists or has to be created
     artist = (
         session.query(Artist)
-        .filter(Artist.artist_name == r_artist)
+        .filter(Artist.artist_name.ilike(r_artist))
         .one_or_none()
     )
     if artist is None:
@@ -111,7 +111,7 @@ def add_new_record(session, record_data: Dict):
     # Check if the format already exists or has to be created
     vinyl_format = (
         session.query(VinylFormat)
-        .filter(VinylFormat.format_name == r_format)
+        .filter(VinylFormat.format_name.ilike(r_format))
         .one_or_none()
     )
     if vinyl_format is None:
@@ -120,7 +120,9 @@ def add_new_record(session, record_data: Dict):
 
     # Check if the genre already exists or has to be created
     genre = (
-        session.query(Genre).filter(Genre.genre_name == r_genre).one_or_none()
+        session.query(Genre)
+        .filter(Genre.genre_name.ilike(r_genre))
+        .one_or_none()
     )
     if genre is None:
         genre = Genre(genre_name=r_genre)
@@ -128,7 +130,9 @@ def add_new_record(session, record_data: Dict):
 
     # Check if the label already exists or has to be created
     label = (
-        session.query(Label).filter(Label.label_name == r_label).one_or_none()
+        session.query(Label)
+        .filter(Label.label_name.ilike(r_label))
+        .one_or_none()
     )
     if label is None:
         label = Label(label_name=r_label)
@@ -143,28 +147,3 @@ def add_new_record(session, record_data: Dict):
 
     session.add(record)
     session.commit()
-
-
-# def connect_to_db(rel_path: Union[Path, str]) -> sqlalchemy.engine.Engine:
-#     """Connect to SQLite DB using a relative path from root."""
-#     full_path = Path.cwd() / rel_path
-#     print(full_path)
-#     conn_str = f"sqlite:///{full_path}"
-#     engine = sqlalchemy.create_engine(conn_str)
-#     return engine
-
-
-# def main():
-#     rel_path = utils.read_config_return_str(CONFIG_PATH, "SQLITE")
-#     engine = connect_to_db(rel_path)
-#     DBSession = sessionmaker(bind=engine)
-#     session = DBSession()
-#     # session = sessionmaker().configure(bind=engine)
-#     add_new_record(
-#         session, TEST_DATA
-#     )  # TODO I can add.all(), see tutorial sqlalchemy
-#     session.close()
-
-
-# if __name__ == main():
-#     main()
