@@ -30,6 +30,13 @@ class Record(Base):
         "Label", secondary="record_label_link", back_populates="records"
     )
 
+    def __repr__(self):
+        return (
+            f"<Record(record_id={self.record_id} "
+            f"title={self.title} "
+            f"artist_id={self.artist_id})>"
+        )
+
 
 class Artist(Base):
     __tablename__ = "artists"
@@ -45,6 +52,12 @@ class Artist(Base):
         "Genre", secondary="artist_genre_link", back_populates="artists"
     )
 
+    def __repr__(self):
+        return (
+            f"<Artist(artist_id={self.artist_id} "
+            f"artist_name={self.artist_name})>"
+        )
+
 
 class Genre(Base):
     __tablename__ = "genres"
@@ -58,6 +71,12 @@ class Genre(Base):
     labels = relationship(
         "Label", secondary="genre_label_link", back_populates="genres"
     )
+
+    def __repr__(self):
+        return (
+            f"<Genre(genre_id={self.genre_id} "
+            f"genre_name={self.genre_name})>"
+        )
 
 
 class Label(Base):
@@ -75,6 +94,12 @@ class Label(Base):
         "Record", secondary="record_label_link", back_populates="labels"
     )
 
+    def __repr__(self):
+        return (
+            f"<Label(label_id={self.label_id} "
+            f"label_name={self.label_name})>"
+        )
+
 
 class VinylFormat(Base):
     __tablename__ = "formats"
@@ -82,6 +107,12 @@ class VinylFormat(Base):
     format_name = Column(TEXT, nullable=False)
     # Relationships
     records = relationship("Record", backref=backref("format"), uselist=True)
+
+    def __repr__(self):
+        return (
+            f"<VinylFormat(format_id={self.format_id} "
+            f"format_name={self.format_name})>"
+        )
 
 
 class RecordLabelLink(Base):
