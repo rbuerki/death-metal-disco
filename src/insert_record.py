@@ -7,7 +7,7 @@ from src.db_declaration import (
     Genre,
     Label,
     Record,
-    VinylFormat,
+    RecordFormat,
 )
 
 CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
@@ -109,14 +109,14 @@ def add_new_record(session, record_data: Dict):
         session.add(artist)
 
     # Check if the format already exists or has to be created
-    vinyl_format = (
-        session.query(VinylFormat)
-        .filter(VinylFormat.format_name.ilike(r_format))
+    record_format = (
+        session.query(RecordFormat)
+        .filter(RecordFormat.format_name.ilike(r_format))
         .one_or_none()
     )
-    if vinyl_format is None:
-        vinyl_format = VinylFormat(format_name=r_format)
-        session.add(vinyl_format)
+    if record_format is None:
+        record_format = RecordFormat(format_name=r_format)
+        session.add(record_format)
 
     # Check if the genre already exists or has to be created
     genre = (
@@ -141,7 +141,7 @@ def add_new_record(session, record_data: Dict):
     # Finally: Initialize the record relationships
     record.artist = artist
     record.genre = genre
-    record.format = vinyl_format
+    record.format = record_format
     record.genre = genre
     record.labels.append(label)  # many to many  TODO this does not work yet
 

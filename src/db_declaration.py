@@ -1,6 +1,6 @@
 from sqlalchemy import INTEGER, REAL, TEXT, Column, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
 
 Base = declarative_base()
@@ -13,7 +13,7 @@ class Record(Base):
     artist_id = Column("artist_id", INTEGER, ForeignKey("artists.artist_id"))
     title = Column("title", TEXT, nullable=False)
     genre_id = Column("genre_id", INTEGER, ForeignKey("genres.genre_id"))
-    label = Column("label", INTEGER, ForeignKey("labels.label_id"))
+    label_id = Column("label", INTEGER, ForeignKey("labels.label_id"))
     year = Column("year", INTEGER)
     format_id = Column("format_id", INTEGER, ForeignKey("formats.format_id"))
     vinyl_color = Column("vinyl_color", TEXT)
@@ -25,7 +25,12 @@ class Record(Base):
     digitized = Column("digitized", INTEGER, nullable=False)
     rating = Column("rating", INTEGER)
     active = Column("active", INTEGER, nullable=False)
-    # Relationships
+
+    # Many-to-one relationships
+    artist = relationship("Artist", back_populates="records")
+    genre = relationship("Genre", back_populates="records")
+    record_format = relationship("RecordFormat", back_populates="records")
+    # Many-to-many Relationships
     labels = relationship(
         "Label", secondary="record_label_link", back_populates="records"
     )
@@ -43,8 +48,10 @@ class Artist(Base):
     artist_id = Column(INTEGER, primary_key=True)
     artist_name = Column(TEXT, nullable=False)
     artist_country = Column(TEXT)
-    # Relationships
-    records = relationship("Record", backref=backref("artist"), uselist=True)
+
+    # Many-to-one relationships
+    records = relationship("Record", back_populates="artist")
+    # Many-to-many Relationships
     labels = relationship(
         "Label", secondary="artist_label_link", back_populates="artists"
     )
@@ -63,8 +70,10 @@ class Genre(Base):
     __tablename__ = "genres"
     genre_id = Column(INTEGER, primary_key=True)
     genre_name = Column(TEXT, nullable=False)
-    # Relationships
-    records = relationship("Record", backref=backref("genre"), uselist=True)
+
+    # Many-to-one Relationships
+    records = relationship("Record", back_populates="genre")
+    # Many-to-many Relationships
     artists = relationship(
         "Artist", secondary="artist_genre_link", back_populates="genres"
     )
@@ -83,7 +92,8 @@ class Label(Base):
     __tablename__ = "labels"
     label_id = Column(INTEGER, primary_key=True)
     label_name = Column(TEXT, nullable=False)
-    # Relationships
+
+    # Many-to-many Relationships
     artists = relationship(
         "Artist", secondary="artist_label_link", back_populates="labels"
     )
@@ -101,16 +111,17 @@ class Label(Base):
         )
 
 
-class VinylFormat(Base):
+class RecordFormat(Base):
     __tablename__ = "formats"
     format_id = Column(INTEGER, primary_key=True)
     format_name = Column(TEXT, nullable=False)
-    # Relationships
-    records = relationship("Record", backref=backref("format"), uselist=True)
+
+    # Many-to-one Relationships
+    records = relationship("Record", back_populates="record_format")
 
     def __repr__(self):
         return (
-            f"<VinylFormat(format_id={self.format_id} "
+            f"<RecordFormat(format_id={self.format_id} "
             f"format_name={self.format_name})>"
         )
 
