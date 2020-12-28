@@ -84,5 +84,5 @@ def create_DB_anew(
     """Drop all existing tables from the database
     and create them anew.
     """
-    Base.metadata.drop_all(engine, checkfirst=False)
+    Base.metadata.drop_all(engine, checkfirst=True)
     Base.metadata.create_all(engine)
