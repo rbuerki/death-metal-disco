@@ -2,12 +2,14 @@ import collections
 from pathlib import Path
 from typing import Dict
 
+import numpy as np
 from src.db_declaration import (
     Artist,
     Genre,
     Label,
     Record,
     RecordFormat,
+    CreditTrx,
 )
 
 CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
@@ -138,11 +140,23 @@ def add_new_record(session, record_data: Dict):
         label = Label(label_name=r_label)
         session.add(label)
 
+    # Create a trx
+    credit_trx = CreditTrx(
+        credit_trx_date=record_data["purchase_date"],
+        credit_trx_type="Purchase",
+        credit_value=-1,  # TODO: credit_value or -1,
+        credit_saldo=(
+            np.array(session.query(CreditTrx.credit_value).all()).sum()
+            + -1  # TODO: credit_value
+        ),
+    )
+
     # Finally: Initialize the record relationships
     record.artist = artist
     record.genre = genre
     record.format = record_format
     record.genre = genre
+    record.credit_trx.append(credit_trx)
     record.labels.append(label)  # many to many  TODO this does not work yet
 
     session.add(record)
