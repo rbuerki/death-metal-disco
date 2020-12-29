@@ -1,6 +1,7 @@
 import collections
+import datetime as dt
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 from src.db_declaration import (
@@ -160,4 +161,51 @@ def add_new_record(session, record_data: Dict):
     record.labels.append(label)  # many to many  TODO this does not work yet
 
     session.add(record)
+    session.commit()
+
+
+def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
+    """Return the date of and the number of days since the
+    last transaction with type 'Addition' stored in the
+    CreditTrx table. (This is called within 'add_credit').
+    """
+    last_addition_date = (
+        session.query(CreditTrx.credit_trx_date)
+        .filter(CreditTrx.credit_trx_type == "Addition")
+        .order_by(CreditTrx.credit_trx_date.desc())
+        .first()
+    )[0]
+
+    days_since_last = (dt.date.today() - last_addition_date).days
+
+    return last_addition_date, days_since_last
+
+
+def add_regular_credits(session, interval_days: int = 10):
+    """Every x days a new credit is added (to be spent
+    on purchasing new records). This function checks
+    the delta in days since the last addition and inserts
+    the necessary credit transactions depending on the
+    defined interval.
+    """
+    last_addition_date, days_since_last = _get_days_since_last_addition(session)
+
+    while days_since_last >= 10:
+        print(last_addition_date)
+        addition_trx = CreditTrx(
+            credit_trx_date=last_addition_date
+            + dt.timedelta(days=interval_days),
+            credit_trx_type="Addition",
+            credit_value=1,
+            credit_saldo=np.array(
+                session.query(CreditTrx.credit_value).all()
+            ).sum()
+            + 1,
+            record_id=np.nan,
+        )
+        session.add(addition_trx)
+        last_addition_date, days_since_last = _get_days_since_last_addition(
+            session
+        )
+
     session.commit()

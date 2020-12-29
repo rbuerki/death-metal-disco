@@ -5,17 +5,32 @@
     connection = engine.connect()
     connection.execution_options(autocommit=True).execute(query)
 
-- [ ] Document the ipynb on github
-- [ ] Set-up logging config
+### Tasks
+
+- [ ] insert_record, see TODOs
+- [ ] insert_record: ask for update
+- [ ] create proper initial data_ingestion with df cleaning / assertions
+- [ ] create remove_record function (-> set to inactive)
+- [ ] How will I handle split recods? Multiple labels for a record?
+
+- [ ] create ratings table
+
+### Meta Things
+
+- [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships
+- [ ] Document the connect.ipynb on github
+- [ ] Set-up logging
 
 If I use pd.to_sql, then obviously I do not insert in an existing table (?) but create a new, overwrite the schema. I have to check that
 It would be better to bulk insert into the table instead of doing like I do now.
 
-It might be better to use sqlalchemy instead of sqlite so I can easily switch between DBs.
+### Prio 2
+
+- [ ] Artist country is set to all NULL yet
 
 ## To Do, OLD STUFF
 
-- [ ] Print Output summary of load (total loaded, total not loaded, load time etc.)
+- [ ] Print output summary of load (total loaded, total not loaded, load time etc.)
 - [ ] How to regulary update the data without requesting all a new?
 
 ## Backlog
