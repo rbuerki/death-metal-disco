@@ -1,7 +1,6 @@
 import configparser
-import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Union
 
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
