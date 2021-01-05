@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Date, ForeignKey, Float, Integer, Numeric, String
+from sqlalchemy import (
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Float,
+    Integer,
+    Numeric,
+    String,
+    func,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -25,6 +35,8 @@ class Record(Base):
     digitized = Column("digitized", Integer, nullable=False)
     rating = Column("rating", Integer)
     active = Column("active", Integer, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # Many-to-one relationships
     artist = relationship("Artist", back_populates="records")
@@ -50,6 +62,8 @@ class Artist(Base):
     artist_id = Column(Integer, primary_key=True)
     artist_name = Column(String, nullable=False)
     artist_country = Column(String)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # One-to-many relationships
     records = relationship("Record", back_populates="artist")
@@ -72,6 +86,8 @@ class Genre(Base):
     __tablename__ = "genres"
     genre_id = Column(Integer, primary_key=True)
     genre_name = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # One-to-many relationships
     records = relationship("Record", back_populates="genre")
@@ -94,6 +110,8 @@ class Label(Base):
     __tablename__ = "labels"
     label_id = Column(Integer, primary_key=True)
     label_name = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # Many-to-many relationships
     artists = relationship(
@@ -117,6 +135,8 @@ class RecordFormat(Base):
     __tablename__ = "formats"
     format_id = Column(Integer, primary_key=True)
     format_name = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # One-to-many relationships
     records = relationship("Record", back_populates="record_format")
@@ -136,6 +156,8 @@ class CreditTrx(Base):
     credit_value = Column(Float, nullable=False)
     credit_saldo = Column(Float, nullable=False)  # TODO: Check calc on DB
     record_id = Column("record_id", Integer, ForeignKey("records.record_id"))
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # One-to-many relationships
     record = relationship("Record", back_populates="credit_trx")

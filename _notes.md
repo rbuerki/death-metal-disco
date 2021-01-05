@@ -7,16 +7,20 @@
 
 ### Tasks
 
+- [ ] check why link tables are empty, only "record_label_link" works
+  
 - [ ] insert_record, see TODOs
 - [ ] insert_record: ask for update
 - [ ] create proper initial data_ingestion with df cleaning / assertions
 - [ ] create remove_record function (-> set to inactive)
-- [ ] How will I handle split recods? Multiple labels for a record?
+- [ ] How will I handle split recods? Multiple labels for a record? I could list them twice (with credit worth of 0.5)
 
 - [ ] create ratings table
+- [ ] create random button (discogs has one ;-))
 
 ### Meta Things
 
+- [ ] Document the CreditTrx Table, which TrxTypes are possible, the logic etc.
 - [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships
 - [ ] Document the connect.ipynb on github
 - [ ] Set-up logging

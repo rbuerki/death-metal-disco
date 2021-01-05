@@ -1,6 +1,11 @@
 import datetime as dt
+from pathlib import Path
 
 import streamlit as st
+
+import src.db_functions as db_functions
+import src.utils as utils
+from src.db_declaration import Base
 
 st.set_page_config(
     page_title="DiscoBase",
@@ -9,12 +14,21 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
+CONFIG_PATH = Path.cwd() / "config.cfg"
+print(CONFIG_PATH)
+path_to_db = utils.read_config_return_str(CONFIG_PATH, "SQLITE")
+print(path_to_db)
+engine = utils.create_engine(path_to_db)
+session = utils.create_session(engine)
+# utils.create_DB_anew(engine, Base)
+
+
 st.title("Death Metal Disco")
 
 artist = st.text_input("Artist")
 title = st.text_input("Title")
 genre = st.text_input("Genre")
-label = (st.text_input("Label"),)
+label = st.text_input("Label")
 year = st.number_input("Year", value=dt.date.today().year, format="%d")
 record_format = st.text_input("Format")
 vinyl_color = st.text_input("Vinyl Color")
@@ -35,6 +49,52 @@ purchase_date = st.date_input("Purchase Date", value=dt.date.today())
 credit_value = st.number_input(
     "Credits", value=1, min_value=0, max_value=1, step=1, format="%d"
 )
+
+insert = st.button("Insert Record")
+if st.button:
+
+    # Initialize record data dictionary (with fixed keys and default value None)
+    record_data_dict = dict.fromkeys(
+        [
+            "artist",
+            "title",
+            "genre",
+            "label",
+            "year",
+            "record_format",
+            "vinyl_color",
+            "lim_edition",
+            "number",
+            "remarks",
+            "price",
+            "digitized",
+            "rating",
+            "active",
+            "purchase_date",
+            "credit_value",
+        ]
+    )
+
+    record_data_dict = {
+        "artist": artist,
+        "title": title,
+        "genre": genre,
+        "label": label,
+        "year": year,
+        "record_format": record_format,
+        "vinyl_color": vinyl_color,
+        "lim_edition": lim_edition,
+        "number": number,
+        "remarks": remarks,
+        "price": price,
+        "digitized": digitized,
+        "rating": rating,
+        "active": active,
+        "purchase_date": purchase_date,
+        "credit_value": credit_value,
+    }
+
+    db_functions.add_new_record(session, record_data_dict)
 
 # data_loaded = helpers.load_preprocessed_data("./data/preprocessed_results.csv")
 

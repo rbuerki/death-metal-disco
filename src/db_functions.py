@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
+from sqlalchemy import func
+
 from src.db_declaration import (
     Artist,
     Genre,
@@ -13,7 +15,8 @@ from src.db_declaration import (
     CreditTrx,
 )
 
-CONFIG_PATH = (Path(__file__).parent.parent / "config.cfg").absolute()
+
+CONFIG_PATH = (Path.cwd().parent / "config.cfg").absolute()
 
 RecordData = collections.namedtuple(
     "RecordData",
@@ -28,11 +31,12 @@ RecordData = collections.namedtuple(
         "lim_edition",
         "number",
         "remarks",
-        "purchase_date",
         "price",
         "digitized",
         "rating",
         "active",
+        "purchase_date",
+        "credit_value",
     ],
 )
 
@@ -52,6 +56,7 @@ TEST_DATA = RecordData(
     digitized=True,
     rating=9,
     active=True,
+    credit_value=1,
 )
 
 
@@ -64,7 +69,7 @@ def add_new_record(session, record_data: Dict):
 
     r_artist = record_data["artist"]
     r_title = record_data["title"]
-    r_format = record_data["format"]
+    r_format = record_data["record_format"]
     r_genre = record_data["genre"]
     r_label = record_data["label"]
 
@@ -141,15 +146,18 @@ def add_new_record(session, record_data: Dict):
         label = Label(label_name=r_label)
         session.add(label)
 
-    # Create a trx
+    # Create a purchase trx
+    credit_value = record_data["credit_value"] * -1
+    credit_saldo = session.query(func.sum(CreditTrx.credit_value)).all()[0][0]
+    # This is for initial data_ingestion only
+    if not credit_saldo:
+        credit_saldo = 0
+
     credit_trx = CreditTrx(
         credit_trx_date=record_data["purchase_date"],
         credit_trx_type="Purchase",
-        credit_value=-1,  # TODO: credit_value or -1,
-        credit_saldo=(
-            np.array(session.query(CreditTrx.credit_value).all()).sum()
-            + -1  # TODO: credit_value
-        ),
+        credit_value=credit_value,
+        credit_saldo=(credit_saldo + credit_value),
     )
 
     # Finally: Initialize the record relationships
@@ -197,10 +205,13 @@ def add_regular_credits(session, interval_days: int = 10):
             + dt.timedelta(days=interval_days),
             credit_trx_type="Addition",
             credit_value=1,
-            credit_saldo=np.array(
-                session.query(CreditTrx.credit_value).all()
-            ).sum()
-            + 1,
+            credit_saldo=(
+                session.query(func.sum(CreditTrx.credit_value)).all()[0][0] + 1
+            ),
+            # credit_saldo=np.array(
+            #     session.query(CreditTrx.credit_value).all()
+            # ).sum()
+            # + 1,
             record_id=np.nan,
         )
         session.add(addition_trx)
