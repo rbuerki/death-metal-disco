@@ -88,7 +88,7 @@ def add_new_record(session, record_data: Dict):
     if record is not None:
         print(
             f"Record '{r_title}' by {r_artist} already exists, insert skipped."
-        )  # TODO Update might be better
+        )  # TODO Replace this with an update
         return
 
     if record is None:
@@ -166,7 +166,11 @@ def add_new_record(session, record_data: Dict):
     record.format = record_format
     record.genre = genre
     record.credit_trx.append(credit_trx)
-    record.labels.append(label)  # many to many  TODO this does not work yet
+
+    record.labels.append(label)
+    artist.labels.append(label)
+    artist.genres.append(genre)
+    genre.labels.append(label)
 
     session.add(record)
     session.commit()
