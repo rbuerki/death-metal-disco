@@ -57,7 +57,7 @@ def read_config_return_str(filepath: Path, section: str) -> str:
 
 def create_engine(rel_path: Union[Path, str]) -> sqlalchemy.engine.Engine:
     """Create an engine as factory and pool forthe DB connections."""
-    full_path = Path.cwd().parent / rel_path
+    full_path = Path.cwd() / rel_path
     print(full_path)
     conn_str = f"sqlite:///{full_path}"
     engine = sqlalchemy.create_engine(conn_str)
