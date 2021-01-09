@@ -93,6 +93,7 @@ def add_new_record(session, record_data: Dict):
 
     if record is None:
         record = Record(
+            artist_country=record_data["artist_country"],
             title=record_data["title"],
             year=record_data["year"],
             vinyl_color=record_data["vinyl_color"],
@@ -113,7 +114,9 @@ def add_new_record(session, record_data: Dict):
         .one_or_none()
     )
     if artist is None:
-        artist = Artist(artist_name=r_artist, artist_country=None)
+        artist = Artist(
+            artist_name=r_artist, artist_country=record_data["artist_country"]
+        )
         session.add(artist)
 
     # Check if the format already exists or has to be created

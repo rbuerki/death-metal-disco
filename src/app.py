@@ -5,7 +5,6 @@ import streamlit as st
 
 import src.db_functions as db_functions
 import src.utils as utils
-from src.db_declaration import Base
 
 st.set_page_config(
     page_title="DiscoBase",
@@ -15,17 +14,15 @@ st.set_page_config(
 )
 
 CONFIG_PATH = Path.cwd() / "config.cfg"
-print(CONFIG_PATH)
 path_to_db = utils.read_config_return_str(CONFIG_PATH, "SQLITE")
-print(path_to_db)
 engine = utils.create_engine(path_to_db)
 session = utils.create_session(engine)
 # utils.create_DB_anew(engine, Base)
 
-
 st.title("Death Metal Disco")
 
 artist = st.text_input("Artist")
+artist_country = st.text_input("artist_country")
 title = st.text_input("Title")
 genre = st.text_input("Genre")
 label = st.text_input("Label")
@@ -50,14 +47,17 @@ credit_value = st.number_input(
     "Credits", value=1, min_value=0, max_value=1, step=1, format="%d"
 )
 
-insert = st.button("Insert Record")
-if st.button:
+# record_data_dict = None
+
+save = st.button("Save Record")
+if save:
 
     # Initialize record data dictionary (with fixed keys and default value None)
+    # TODO Should not be initalized in this module
     record_data_dict = dict.fromkeys(
         [
             "artist",
-            "title",
+            "artist_country" "title",
             "genre",
             "label",
             "year",
@@ -77,6 +77,7 @@ if st.button:
 
     record_data_dict = {
         "artist": artist,
+        "artist_country": artist_country,
         "title": title,
         "genre": genre,
         "label": label,
@@ -93,8 +94,14 @@ if st.button:
         "purchase_date": purchase_date,
         "credit_value": credit_value,
     }
+    st.write(record_data_dict)
 
-    db_functions.add_new_record(session, record_data_dict)
+    if record_data_dict:
+
+        insert = st.button("Insert Record")
+        if insert and isinstance(record_data_dict, dict):
+            db_functions.add_new_record(session, record_data_dict)
+            st.write("Record inserted.")
 
 # data_loaded = helpers.load_preprocessed_data("./data/preprocessed_results.csv")
 
