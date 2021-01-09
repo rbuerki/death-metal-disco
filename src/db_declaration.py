@@ -14,7 +14,6 @@ from sqlalchemy.orm import relationship
 
 
 Base = declarative_base()
-print(type(Base))
 
 
 class Record(Base):
