@@ -19,10 +19,18 @@ engine = utils.create_engine(path_to_db)
 session = utils.create_session(engine)
 # utils.create_DB_anew(engine, Base)
 
+# TODO Depending on this I can show more or less of the others
+trx_types = [
+    "Purchase",
+    "Deletion",
+]
+
 st.title("Death Metal Disco")
 
+trx_type = st.selectbox("Transaction Type", trx_types)
+st.write("---")
 artist = st.text_input("Artist")
-artist_country = st.text_input("artist_country")
+artist_country = st.text_input("(Artist) Country")
 title = st.text_input("Title")
 genre = st.text_input("Genre")
 label = st.text_input("Label")
@@ -49,52 +57,32 @@ credit_value = st.number_input(
 
 # record_data_dict = None
 
-save = st.button("Save Record")
+save = st.checkbox("Save Record")
 if save:
 
-    # Initialize record data dictionary (with fixed keys and default value None)
-    # TODO Should not be initalized in this module
-    record_data_dict = dict.fromkeys(
-        [
-            "artist",
-            "artist_country" "title",
-            "genre",
-            "label",
-            "year",
-            "record_format",
-            "vinyl_color",
-            "lim_edition",
-            "number",
-            "remarks",
-            "price",
-            "digitized",
-            "rating",
-            "active",
-            "purchase_date",
-            "credit_value",
-        ]
-    )
-
     record_data_dict = {
-        "artist": artist,
-        "artist_country": artist_country,
-        "title": title,
-        "genre": genre,
-        "label": label,
+        "trx_type": trx_type,
+        "artist": artist if artist != "" else None,
+        "artist_country": artist_country if artist_country != "" else None,
+        "title": title if title != "" else None,
+        "genre": genre if genre != "" else None,
+        "label": label if label != "" else None,
         "year": year,
-        "record_format": record_format,
-        "vinyl_color": vinyl_color,
-        "lim_edition": lim_edition,
-        "number": number,
-        "remarks": remarks,
+        "record_format": record_format if record_format != "" else None,
+        "vinyl_color": vinyl_color if vinyl_color != "" else None,
+        "lim_edition": lim_edition if lim_edition != "" else None,
+        "number": number if number != "" else None,
+        "remarks": remarks if remarks != "" else None,
         "price": price,
         "digitized": digitized,
-        "rating": rating,
+        "rating": rating if rating != "" else None,
         "active": active,
         "purchase_date": purchase_date,
         "credit_value": credit_value,
     }
     st.write(record_data_dict)
+
+    # TODO Install validations
 
     if record_data_dict:
 
@@ -102,6 +90,7 @@ if save:
         if insert and isinstance(record_data_dict, dict):
             db_functions.add_new_record(session, record_data_dict)
             st.write("Record inserted.")
+            # TODO write actual credit score
 
 # data_loaded = helpers.load_preprocessed_data("./data/preprocessed_results.csv")
 

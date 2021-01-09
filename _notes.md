@@ -7,12 +7,16 @@
 
 ### Tasks
 
-- [ ] check why link tables are empty, only "record_label_link" works
-  
+- [ ] WARNING: make sure dev and app.py (!!!) works on a dev DB
+
+- [ ] make sure engine (and session?) are created once and imported to different modules
+- [ ] clear all in app.py
+- [ ] install security check in create_anew()
 - [ ] insert_record, see TODOs
 - [ ] insert_record: ask for update
-- [ ] create proper initial data_ingestion with df cleaning / assertions
-- [ ] create remove_record function (-> set to inactive)
+- [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
+- [ ] create proper initial data_ingestion function with df cleaning / assertions
+- [ ] create remove_record function (-> set status to inactive)
 - [ ] How will I handle split recods? Multiple labels for a record? I could list them twice (with credit worth of 0.5)
 
 - [ ] create ratings table

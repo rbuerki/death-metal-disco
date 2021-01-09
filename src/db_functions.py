@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
-from sqlalchemy import func
+
+# from sqlalchemy import func TODO
 
 from src.db_declaration import (
     Artist,
@@ -66,6 +67,7 @@ def add_new_record(session, record_data: Dict):
     uploads (initial data ingestion) or for adding singe new
     records later on.
     """
+    assert record_data["trx_type"] == "Purchase" or "Initial Load"
 
     r_artist = record_data["artist"]
     r_title = record_data["title"]
@@ -93,7 +95,6 @@ def add_new_record(session, record_data: Dict):
 
     if record is None:
         record = Record(
-            artist_country=record_data["artist_country"],
             title=record_data["title"],
             year=record_data["year"],
             vinyl_color=record_data["vinyl_color"],
@@ -151,14 +152,19 @@ def add_new_record(session, record_data: Dict):
 
     # Create a purchase trx
     credit_value = record_data["credit_value"] * -1
-    credit_saldo = session.query(func.sum(CreditTrx.credit_value)).all()[0][0]
-    # This is for initial data_ingestion only
-    if not credit_saldo:
+    try:
+        credit_saldo = (
+            session.query(CreditTrx.credit_saldo)
+            .order_by(CreditTrx.credit_trx_id)
+            .all()[-1][0]
+        )
+    except IndexError:
+        # This is for initial data_ingestion only
         credit_saldo = 0
 
     credit_trx = CreditTrx(
         credit_trx_date=record_data["purchase_date"],
-        credit_trx_type="Purchase",
+        credit_trx_type=record_data["trx_type"],
         credit_value=credit_value,
         credit_saldo=(credit_saldo + credit_value),
     )
@@ -213,12 +219,12 @@ def add_regular_credits(session, interval_days: int = 10):
             credit_trx_type="Addition",
             credit_value=1,
             credit_saldo=(
-                session.query(func.sum(CreditTrx.credit_value)).all()[0][0] + 1
+                session.query(CreditTrx.credit_saldo)
+                .order_by(CreditTrx.credit_trx_id)
+                .all()[-1][0]
+                + 1
             ),
-            # credit_saldo=np.array(
-            #     session.query(CreditTrx.credit_value).all()
-            # ).sum()
-            # + 1,
+            # TODO i should assert that the createdate is also max, also in add_record
             record_id=np.nan,
         )
         session.add(addition_trx)
