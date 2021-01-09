@@ -1,11 +1,8 @@
-import collections
 import datetime as dt
 from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
-
-# from sqlalchemy import func TODO
 
 from src.db_declaration import (
     Artist,
@@ -18,47 +15,6 @@ from src.db_declaration import (
 
 
 CONFIG_PATH = (Path.cwd().parent / "config.cfg").absolute()
-
-RecordData = collections.namedtuple(
-    "RecordData",
-    [
-        "artist",
-        "title",
-        "genre",
-        "label",
-        "year",
-        "format",
-        "vinyl_color",
-        "lim_edition",
-        "number",
-        "remarks",
-        "price",
-        "digitized",
-        "rating",
-        "active",
-        "purchase_date",
-        "credit_value",
-    ],
-)
-
-TEST_DATA = RecordData(
-    artist="Year Of The Knife",
-    title="Ultimate Aggression",
-    genre="Hardcore",
-    label="Southern Lord",
-    year=2020,
-    format="LP",
-    vinyl_color="red",
-    lim_edition=200,
-    number=None,
-    purchase_date=5,
-    remarks="blah blah",
-    price=20,
-    digitized=True,
-    rating=9,
-    active=True,
-    credit_value=1,
-)
 
 
 def add_new_record(session, record_data: Dict):
@@ -185,21 +141,64 @@ def add_new_record(session, record_data: Dict):
     session.commit()
 
 
-def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
-    """Return the date of and the number of days since the
-    last transaction with type 'Addition' stored in the
-    CreditTrx table. (This is called within 'add_credit').
+def set_record_to_inactive(session, record_data: Dict):
+    """Set a the status of a record to inactive. This is equivalent
+    to a removal, because records are never fully deleted. This
+    triggers a transaction with type "Removal" and can lead to a
+    credit addition depending on the credit value entered.
     """
-    last_addition_date = (
-        session.query(CreditTrx.credit_trx_date)
-        .filter(CreditTrx.credit_trx_type == "Addition")
-        .order_by(CreditTrx.credit_trx_date.desc())
-        .first()
-    )[0]
+    assert record_data["trx_type"] == "Removal"
 
-    days_since_last = (dt.date.today() - last_addition_date).days
+    r_artist = record_data["artist"]
+    r_title = record_data["title"]
+    r_year = record_data["year"]
 
-    return last_addition_date, days_since_last
+    # Check if record already exists
+    record = (
+        session.query(Record)
+        .join(Artist)
+        .filter(
+            (Record.title.ilike(r_title)),
+            (Record.year == (r_year)),
+            (Artist.artist_name.ilike(r_artist)),
+        )
+        .one_or_none()
+    )
+
+    if record is None:
+        print(f"Record '{r_title}' by {r_artist} not found, please check.")
+        return
+
+    if record is not None:
+        if record.active == 0:
+            print(
+                f"Status of record '{r_title}' by {r_artist} is "
+                f"already 0, please check."
+            )
+        else:
+            record.active = 0
+            print("Record set to inactive.")
+
+    # Create a Removal trx
+    credit_value = record_data["credit_value"]
+    credit_saldo = (
+        session.query(CreditTrx.credit_saldo)
+        .order_by(CreditTrx.credit_trx_id)
+        .all()[-1][0]
+    )
+
+    credit_trx = CreditTrx(
+        credit_trx_date=record_data["date"],  # TODO
+        credit_trx_type=record_data["trx_type"],
+        credit_value=credit_value,
+        credit_saldo=(credit_saldo + credit_value),
+    )
+
+    # Initialize the record relationships
+    record.credit_trx.append(credit_trx)
+
+    session.add(record)
+    session.commit()
 
 
 def add_regular_credits(session, interval_days: int = 10):
@@ -212,10 +211,10 @@ def add_regular_credits(session, interval_days: int = 10):
     last_addition_date, days_since_last = _get_days_since_last_addition(session)
 
     while days_since_last >= 10:
-        print(last_addition_date)
+        credit_trx_date = last_addition_date + dt.timedelta(days=interval_days)
+        print(f"Creating 'Addition' Trx for: {credit_trx_date}")
         addition_trx = CreditTrx(
-            credit_trx_date=last_addition_date
-            + dt.timedelta(days=interval_days),
+            credit_trx_date=credit_trx_date,
             credit_trx_type="Addition",
             credit_value=1,
             credit_saldo=(
@@ -233,3 +232,20 @@ def add_regular_credits(session, interval_days: int = 10):
         )
 
     session.commit()
+
+
+def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
+    """Return the date of and the number of days since the
+    last transaction with type 'Addition' stored in the
+    CreditTrx table. (This is called within 'add_credit').
+    """
+    last_addition_date = (
+        session.query(CreditTrx.credit_trx_date)
+        .filter(CreditTrx.credit_trx_type == "Addition")
+        .order_by(CreditTrx.credit_trx_date.desc())
+        .first()
+    )[0]
+
+    days_since_last = (dt.date.today() - last_addition_date).days
+
+    return last_addition_date, days_since_last
