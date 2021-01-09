@@ -91,6 +91,7 @@ if save:
             db_functions.add_new_record(session, record_data_dict)
             st.write("Record inserted.")
             # TODO write actual credit score
+            # TODO OUtput if artist, label, genre etc. has been created or updated
 
 # data_loaded = helpers.load_preprocessed_data("./data/preprocessed_results.csv")
 
