@@ -175,30 +175,32 @@ def set_record_to_inactive(session, record_data: Dict):
                 f"Status of record '{r_title}' by {r_artist} is "
                 f"already 0, please check."
             )
+            return
+
         else:
             record.active = 0
             print("Record set to inactive.")
 
-    # Create a Removal trx
-    credit_value = record_data["credit_value"]
-    credit_saldo = (
-        session.query(CreditTrx.credit_saldo)
-        .order_by(CreditTrx.credit_trx_id)
-        .all()[-1][0]
-    )
+            # Create a Removal trx
+            credit_value = record_data["credit_value"]
+            credit_saldo = (
+                session.query(CreditTrx.credit_saldo)
+                .order_by(CreditTrx.credit_trx_id)
+                .all()[-1][0]
+            )
 
-    credit_trx = CreditTrx(
-        credit_trx_date=record_data["date"],  # TODO
-        credit_trx_type=record_data["trx_type"],
-        credit_value=credit_value,
-        credit_saldo=(credit_saldo + credit_value),
-    )
+            credit_trx = CreditTrx(
+                credit_trx_date=record_data["date"],  # TODO
+                credit_trx_type=record_data["trx_type"],
+                credit_value=credit_value,
+                credit_saldo=(credit_saldo + credit_value),
+            )
 
-    # Initialize the record relationships
-    record.credit_trx.append(credit_trx)
+            # Initialize the record relationships
+            record.credit_trx.append(credit_trx)
 
-    session.add(record)
-    session.commit()
+            session.add(record)
+            session.commit()
 
 
 def add_regular_credits(session, interval_days: int = 10):

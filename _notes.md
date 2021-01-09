@@ -7,25 +7,30 @@
 
 ### Tasks
 
-- [ ] WARNING: make sure dev and app.py (!!!) works on a dev DB
-
+- [ ] WARNING: make sure dev and app.py (!!!) works on a dev DB --> it will not yet
+- [ ] create remove_record function frontend
+- [ ] create update_record function (no trx is created), but if a rating is made, then I sould write to the ratings table
+- [ ] ... then It has to be possible ro re-add inactive records! (and to pay for it in credits!)
 - [ ] make sure engine (and session?) are created once and imported to different modules
-- [ ] clear all in app.py
+- [ ] clear all input in app.py / create data validations before running add_record function
 - [ ] install security check in create_anew()
 - [ ] insert_record, see TODOs
-- [ ] insert_record: ask for update
+
 - [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
 - [ ] create proper initial data_ingestion function with df cleaning / assertions
-- [ ] create remove_record function (-> set status to inactive)
-- [ ] How will I handle split recods? Multiple labels for a record? I could list them twice (with credit worth of 0.5)
 
 - [ ] create ratings table
 - [ ] create random button (discogs has one ;-))
 
+### Prio 2
+
+- [ ] When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
+- [ ] How will I handle split recods? Multiple labels for a record? I could list them twice (with credit worth of 0.5)
+
 ### Meta Things
 
-- [ ] Document the CreditTrx Table, which TrxTypes are possible, the logic etc.
-- [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships
+- [ ] Document the CreditTrx Table, which 4 TrxTypes are possible, the logic etc.
+- [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships (this is not exacty true, see realpyhton table declaration)
 - [ ] Document the connect.ipynb on github
 - [ ] Set-up logging
 
