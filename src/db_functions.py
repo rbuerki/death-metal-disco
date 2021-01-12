@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
+import sqlalchemy
 
 from src.db_declaration import (
     Artist,
@@ -17,7 +18,7 @@ from src.db_declaration import (
 CONFIG_PATH = (Path.cwd().parent / "config.cfg").absolute()
 
 
-def add_new_record(session, record_data: Dict):
+def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """Add a new record to the DB. The record data is passed as
     a dictionary. This function can be applied during batch
     uploads (initial data ingestion) or for adding singe new
@@ -127,10 +128,122 @@ def add_new_record(session, record_data: Dict):
 
     # Finally: Initialize the record relationships
     record.artist = artist
-    record.genre = genre
     record.format = record_format
     record.genre = genre
     record.credit_trx.append(credit_trx)
+
+    record.labels.append(label)
+    artist.labels.append(label)
+    artist.genres.append(genre)
+    genre.labels.append(label)
+
+    session.add(record)
+    session.commit()
+
+
+def update_record(session, record_data: Dict):
+    """Update the properties of an existing record in the DB.
+    The record data is passed as a dictionary and data that
+    has changed will be updated to the new values.
+    """
+    assert record_data["trx_type"] == "Update"
+
+    r_artist = record_data["artist"]
+    r_title = record_data["title"]
+    r_format = record_data["record_format"]
+    r_genre = record_data["genre"]
+    r_label = record_data["label"]
+
+    # Check if record already exists
+    record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
+
+    if record is None:
+        print(
+            f"Record '{r_title}' by {r_artist} not found in DB, cannot update."
+        )
+        return
+
+    if record is not None:
+        record = Record(
+            title=record_data["title"],
+            year=record_data["year"],
+            vinyl_color=record_data["vinyl_color"],
+            lim_edition=record_data["lim_edition"],
+            number=record_data["number"],
+            remarks=record_data["remarks"],
+            purchase_date=record_data["purchase_date"],
+            price=record_data["price"],
+            digitized=record_data["digitized"],
+            rating=record_data["rating"],
+            active=record_data["active"],
+        )
+
+    # Check if the artist already exists or has to be created
+    artist = (
+        session.query(Artist)
+        .filter(Artist.artist_name.ilike(r_artist))
+        .one_or_none()
+    )
+    if artist is None:
+        artist = Artist(
+            artist_name=r_artist, artist_country=record_data["artist_country"]
+        )
+        session.add(artist)
+
+    # Check if the format already exists or has to be created
+    record_format = (
+        session.query(RecordFormat)
+        .filter(RecordFormat.format_name.ilike(r_format))
+        .one_or_none()
+    )
+    if record_format is None:
+        record_format = RecordFormat(format_name=r_format)
+        session.add(record_format)
+
+    # Check if the genre already exists or has to be created
+    genre = (
+        session.query(Genre)
+        .filter(Genre.genre_name.ilike(r_genre))
+        .one_or_none()
+    )
+    if genre is None:
+        genre = Genre(genre_name=r_genre)
+        session.add(genre)
+
+    # Check if the label already exists or has to be created
+    label = (
+        session.query(Label)
+        .filter(Label.label_name.ilike(r_label))
+        .one_or_none()
+    )
+    if label is None:
+        label = Label(label_name=r_label)
+        session.add(label)
+
+    # # Create a purchase trx  TODO For reactivations I could charge a Credit Trx
+    # credit_value = record_data["credit_value"] * -1
+    # try:
+    #     credit_saldo = (
+    #         session.query(CreditTrx.credit_saldo)
+    #         .order_by(CreditTrx.credit_trx_id)
+    #         .all()[-1][0]
+    #     )
+    # except IndexError:
+    #     # This is for initial data_ingestion only
+    #     credit_saldo = 0
+
+    # credit_trx = CreditTrx(
+    #     credit_trx_date=record_data["purchase_date"],
+    #     credit_trx_type=record_data["trx_type"],
+    #     credit_value=credit_value,
+    #     credit_saldo=(credit_saldo + credit_value),
+    # )
+
+    # Finally: Initialize the record relationships
+    record.artist = artist
+    record.format = record_format
+    record.genre = genre
+    # record.credit_trx.append(credit_trx)
 
     record.labels.append(label)
     artist.labels.append(label)
@@ -151,19 +264,9 @@ def set_record_to_inactive(session, record_data: Dict):
 
     r_artist = record_data["artist"]
     r_title = record_data["title"]
-    r_year = record_data["year"]
 
     # Check if record already exists
-    record = (
-        session.query(Record)
-        .join(Artist)
-        .filter(
-            (Record.title.ilike(r_title)),
-            (Record.year == (r_year)),
-            (Artist.artist_name.ilike(r_artist)),
-        )
-        .one_or_none()
-    )
+    record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
 
     if record is None:
         print(f"Record '{r_title}' by {r_artist} not found, please check.")
@@ -251,3 +354,23 @@ def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
     days_since_last = (dt.date.today() - last_addition_date).days
 
     return last_addition_date, days_since_last
+
+
+def fetch_a_record_from_the_shelf(
+    session: sqlalchemy.orm.session.Session, artist: str, title: str
+) -> sqlalchemy.orm.query.Query:
+    """Query a record by title, artist and (optional) year,
+    Return the query result object. Returns None if no record is
+    found, raises an error if more than one record is matched.
+    """
+    record = (
+        session.query(Record)
+        .join(Artist)
+        .filter(
+            (Record.title.ilike(title)),
+            (Artist.artist_name.ilike(artist))
+            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
+        )
+        .one_or_none()
+    )
+    return record
