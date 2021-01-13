@@ -7,20 +7,32 @@
 
 ### Tasks
 
-- [ ] WARNING: make sure dev and app.py (!!!) works on a dev DB --> it will not yet
-- [ ] create remove_record function frontend
-- [ ] create update_record function (no trx is created), but if a rating is made, then I sould write to the ratings table
-- [ ] ... then It has to be possible ro re-add inactive records! (and to pay for it in credits!)
-- [ ] make sure engine (and session?) are created once and imported to different modules
+TODO on Prod (when app.py is redirected to prod)
+
+- [ ] update digitized for queensway and desoltated to 1
+
+DEV
+
+- [ ] "BUG": Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
+- [ ] implement the frontend for the remove_record function
+
+- [ ] create test for db_functions (maybe rename), create package structure like blogpost medium
+- [ ] make sure engine (and session?) are created once and imported to different modules, see bc validation,
+- [ ] ... and change config to yaml
+  
+- [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
+
 - [ ] clear all input in app.py / create data validations before running add_record function
 - [ ] install security check in create_anew()
-- [ ] insert_record, see TODOs
-
-- [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
-- [ ] create proper initial data_ingestion function with df cleaning / assertions
+- [ ] all files: check the many TODOs
 
 - [ ] create ratings table
+- [ ] Within update: if a rating is made, then I should write to the ratings table
+- [ ] Within update:  also it should be possible ro re-add inactive records! (and to pay for it in credits!)
 - [ ] create random button (discogs has one ;-))
+
+- [ ] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
+- [ ] On Updates the old relationship values are not overwritten in many to many relationships (-->Labels), see dev_stuff_2
 
 ### Prio 2
 
@@ -36,10 +48,6 @@
 
 If I use pd.to_sql, then obviously I do not insert in an existing table (?) but create a new, overwrite the schema. I have to check that
 It would be better to bulk insert into the table instead of doing like I do now.
-
-### Prio 2
-
-- [ ] Artist country is set to all NULL yet
 
 ## To Do, OLD STUFF
 
