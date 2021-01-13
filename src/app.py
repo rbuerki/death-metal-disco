@@ -18,9 +18,7 @@ path_to_db = (
 )
 engine = utils.create_engine(path_to_db)
 session = utils.create_session(engine)
-# utils.create_DB_anew(engine, Base)
 
-# TODO Depending on this I can show more or less of the others
 trx_types = [
     "Purchase",
     "Update",
@@ -113,11 +111,10 @@ elif trx_type == "Update":
             genre = st.text_input("Genre", value=record.genre.genre_name)
             label = st.text_input("Label", value=record.labels[0].label_name)
             year = st.number_input("Year", value=record.year)
-            # BUG does not work ...
-            record_format = st.text_input("Format", value="")
-            # record_format = st.text_input(
-            #     "Format", value=record.record_format.format_name
-            # )
+            # NOTE where record_format is None this will cause error (have to backfill formats)
+            record_format = st.text_input(
+                "Format", value=record.record_format.format_name
+            )
             vinyl_color = st.text_input("Vinyl Color", value=record.vinyl_color)
             lim_edition = st.text_input("Lim Edition", value=record.lim_edition)
             number = st.text_input("Number", value=record.number)
@@ -136,7 +133,7 @@ elif trx_type == "Update":
                 "Purchase Date", value=record.purchase_date
             )
 
-            # TODO I could create a reaktivation trx, if I set to 1
+            # NOTE I could create a reaktivation trx, if I set to 1
             # credit_value = st.number_input(
             #     "Credits", value=0, min_value=0, max_value=1, step=1, format="%d"
             # )

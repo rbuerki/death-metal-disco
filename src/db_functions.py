@@ -148,7 +148,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
 
     # Finally: Initialize the record relationships
     record.artist = artist
-    record.format = record_format
+    record.record_format = record_format
     record.genre = genre
     record.credit_trx.append(credit_trx)
 
@@ -259,7 +259,7 @@ def update_record(session, record_data: Dict):
 
     # Finally: Initialize the record relationships
     record.artist = artist
-    record.format = record_format  # BUG maybe???
+    record.record_format = record_format  # BUG maybe???
     record.genre = genre
     # record.credit_trx.append(credit_trx)
 
