@@ -18,6 +18,26 @@ from src.db_declaration import (
 CONFIG_PATH = (Path.cwd().parent / "config.cfg").absolute()
 
 
+def fetch_a_record_from_the_shelf(
+    session: sqlalchemy.orm.session.Session, artist: str, title: str
+) -> sqlalchemy.orm.query.Query:
+    """Query a record by title, artist and (optional) year,
+    Return the query result object. Returns None if no record is
+    found, raises an error if more than one record is matched.
+    """
+    record = (
+        session.query(Record)
+        .join(Artist)
+        .filter(
+            (Record.title.ilike(title)),
+            (Artist.artist_name.ilike(artist))
+            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
+        )
+        .one_or_none()
+    )
+    return record
+
+
 def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """Add a new record to the DB. The record data is passed as
     a dictionary. This function can be applied during batch
@@ -164,19 +184,17 @@ def update_record(session, record_data: Dict):
         return
 
     if record is not None:
-        record = Record(
-            title=record_data["title"],
-            year=record_data["year"],
-            vinyl_color=record_data["vinyl_color"],
-            lim_edition=record_data["lim_edition"],
-            number=record_data["number"],
-            remarks=record_data["remarks"],
-            purchase_date=record_data["purchase_date"],
-            price=record_data["price"],
-            digitized=record_data["digitized"],
-            rating=record_data["rating"],
-            active=record_data["active"],
-        )
+        record.title = record_data["title"]
+        record.year = record_data["year"]
+        record.vinyl_color = record_data["vinyl_color"]
+        record.lim_edition = record_data["lim_edition"]
+        record.number = record_data["number"]
+        record.remarks = record_data["remarks"]
+        record.purchase_date = record_data["purchase_date"]
+        record.price = record_data["price"]
+        record.digitized = record_data["digitized"]
+        record.rating = record_data["rating"]
+        record.active = record_data["active"]
 
     # Check if the artist already exists or has to be created
     artist = (
@@ -241,7 +259,7 @@ def update_record(session, record_data: Dict):
 
     # Finally: Initialize the record relationships
     record.artist = artist
-    record.format = record_format
+    record.format = record_format  # BUG maybe???
     record.genre = genre
     # record.credit_trx.append(credit_trx)
 
@@ -354,23 +372,3 @@ def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
     days_since_last = (dt.date.today() - last_addition_date).days
 
     return last_addition_date, days_since_last
-
-
-def fetch_a_record_from_the_shelf(
-    session: sqlalchemy.orm.session.Session, artist: str, title: str
-) -> sqlalchemy.orm.query.Query:
-    """Query a record by title, artist and (optional) year,
-    Return the query result object. Returns None if no record is
-    found, raises an error if more than one record is matched.
-    """
-    record = (
-        session.query(Record)
-        .join(Artist)
-        .filter(
-            (Record.title.ilike(title)),
-            (Artist.artist_name.ilike(artist))
-            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
-        )
-        .one_or_none()
-    )
-    return record
