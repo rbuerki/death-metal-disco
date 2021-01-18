@@ -22,12 +22,12 @@ session = utils.create_session(engine)
 trx_types = [
     "Purchase",
     "Update",
-    "Deletion",
+    "Remove",
 ]
 
 st.title("Death Metal Disco")
 
-trx_type = st.selectbox("Transaction Type", trx_types)
+trx_type: str = st.selectbox("Transaction Type", trx_types)
 st.write("---")
 
 if trx_type == "Purchase":
@@ -57,8 +57,8 @@ if trx_type == "Purchase":
         "Credits", value=1, min_value=0, max_value=1, step=1, format="%d"
     )
 
-    save = st.checkbox("Save Record")
-    if save:
+    insert: bool = st.checkbox("Insert Record")
+    if insert:
 
         record_data_dict = {
             "trx_type": trx_type,
@@ -86,8 +86,8 @@ if trx_type == "Purchase":
 
         if record_data_dict:
 
-            insert = st.button("Insert Record")
-            if insert and isinstance(record_data_dict, dict):
+            commit = st.button("Commit Transaction")
+            if commit and isinstance(record_data_dict, dict):
                 db_functions.add_new_record(session, record_data_dict)
                 st.write("Record inserted.")
                 # TODO write actual credit score
@@ -109,9 +109,11 @@ elif trx_type == "Update":
             )
             title = st.text_input("Title", value=record.title)
             genre = st.text_input("Genre", value=record.genre.genre_name)
-            label = st.text_input("Label", value=record.labels[0].label_name)
+            label = st.text_input(
+                "Label",
+                value=" / ".join([label.label_name for label in record.labels]),
+            )
             year = st.number_input("Year", value=record.year)
-            # NOTE where record_format is None this will cause error (have to backfill formats)
             record_format = st.text_input(
                 "Format", value=record.record_format.format_name
             )
@@ -138,8 +140,8 @@ elif trx_type == "Update":
             #     "Credits", value=0, min_value=0, max_value=1, step=1, format="%d"
             # )
 
-            save = st.checkbox("Save Record")
-            if save:
+            update: bool = st.checkbox("Update Record")
+            if update:
 
                 record_data_dict = {
                     "trx_type": trx_type,
@@ -166,13 +168,77 @@ elif trx_type == "Update":
                     # "credit_value": credit_value,
                 }
                 st.write(record_data_dict)
-
                 # TODO Install validations
 
                 if record_data_dict:
-
-                    update = st.button("Update Record")
-                    if update and isinstance(record_data_dict, dict):
+                    commit: bool = st.checkbox("Commit Transaction.")
+                    if commit and isinstance(record_data_dict, dict):
                         db_functions.update_record(session, record_data_dict)
                         st.write("Record updated.")
-                        # TODO OUtput if artist, label, genre etc. has been created or updated
+                        # TODO Output if artist, label, genre etc. has been created or updated
+
+
+elif trx_type == "Remove":
+    # TODO The next 9 rows are shared with Update
+    artist = st.text_input("Artist", value="")
+    title = st.text_input("Title", value="")
+
+    if artist != "" and title != "":
+        record = db_functions.fetch_a_record_from_the_shelf(
+            session, artist, title
+        )
+        if record is not None:
+            if record.active == 0:
+                st.write(
+                    "Record is already inactive. You cannot remove it twice."
+                )
+            elif record.active == 1:
+                st.write("---")
+                removal_date = st.date_input(
+                    "Removal Date", value=dt.date.today()
+                )
+                credit_value: int = st.number_input(
+                    "Credits",
+                    value=0,
+                    min_value=0,
+                    max_value=1,
+                    step=1,
+                    format="%d",
+                )
+
+                remove: bool = st.checkbox("Inactivate Record")
+                if remove:
+
+                    record_data_dict = {
+                        "trx_type": trx_type,
+                        "artist": record.artist.artist_name,
+                        "title": record.title,
+                        "genre": record.genre.genre_name,
+                        "label": " / ".join(
+                            [label.label_name for label in record.labels]
+                        ),
+                        "year": record.year,
+                        "record_format": record.record_format.format_name,
+                        "vinyl_color": record.vinyl_color,
+                        "lim_edition": record.lim_edition,
+                        "number": record.number,
+                        "remarks": record.remarks,
+                        "price": record.price,
+                        "digitized": record.digitized,
+                        "rating": record.rating,
+                        "active": 0,
+                        "purchase_date": record.purchase_date,
+                        "removal_date": removal_date,
+                        "credit_value": credit_value,
+                    }
+                    st.write(record_data_dict)
+
+                    if record_data_dict:
+
+                        commit: bool = st.checkbox("Commit Transaction.")
+                        if commit and isinstance(record_data_dict, dict):
+                            db_functions.set_record_to_inactive(
+                                session, record_data_dict
+                            )
+                            st.write("Record set to inactive.")
+                            # TODO Output if artist, label, genre etc. has been created or updated

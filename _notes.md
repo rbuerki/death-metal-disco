@@ -10,13 +10,13 @@
 TODO on Prod (when app.py is redirected to prod)
 
 - [ ] update digitized for queensway and desoltated to 1
+- [ ] add 15.1. Sanguisugabogg - Tortured Whole (transp. light blue), lim 200, 25 chf, cm
 
 DEV
 
-- [ ] "BUG": Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
-- [ ] implement the frontend for the remove_record function
+- [ ] Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
 
-- [ ] create test for db_functions (maybe rename), create package structure like blogpost medium
+- [ ] create tests for db_functions (maybe rename), create package structure like blogpost medium
 - [ ] make sure engine (and session?) are created once and imported to different modules, see bc validation,
 - [ ] ... and change config to yaml
   

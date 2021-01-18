@@ -278,7 +278,7 @@ def set_record_to_inactive(session, record_data: Dict):
     triggers a transaction with type "Removal" and can lead to a
     credit addition depending on the credit value entered.
     """
-    assert record_data["trx_type"] == "Removal"
+    assert record_data["trx_type"] == "Remove"
 
     r_artist = record_data["artist"]
     r_title = record_data["title"]
@@ -311,7 +311,7 @@ def set_record_to_inactive(session, record_data: Dict):
             )
 
             credit_trx = CreditTrx(
-                credit_trx_date=record_data["date"],  # TODO
+                credit_trx_date=record_data["removal_date"],
                 credit_trx_type=record_data["trx_type"],
                 credit_value=credit_value,
                 credit_saldo=(credit_saldo + credit_value),
