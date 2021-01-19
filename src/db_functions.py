@@ -372,3 +372,14 @@ def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
     days_since_last = (dt.date.today() - last_addition_date).days
 
     return last_addition_date, days_since_last
+
+
+def create_DB_anew(
+    engine: sqlalchemy.engine.Engine,
+    Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
+):
+    """Drop all existing tables from the database
+    and create them anew. WARNING!
+    """
+    Base.metadata.drop_all(engine, checkfirst=True)
+    Base.metadata.create_all(engine)

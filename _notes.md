@@ -9,18 +9,19 @@
 
 TODO on Prod (when app.py is redirected to prod)
 
-- [ ] update digitized for queensway and desoltated to 1
+- [ ] update digitized for queensway, frozen soul and desoltated to 1
 - [ ] add 15.1. Sanguisugabogg - Tortured Whole (transp. light blue), lim 200, 25 chf, cm
 
 DEV
 
-- [ ] Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
+- [ ] make sure engine (and session?) are created once and imported to different modules, see bc validation
+- [ ] i have to implement arg parse and document the entry point with args
 
 - [ ] create tests for db_functions (maybe rename), create package structure like blogpost medium
-- [ ] make sure engine (and session?) are created once and imported to different modules, see bc validation,
-- [ ] ... and change config to yaml
-  
 - [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
+
+- [ ] Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
+- [ ] How will I handle split recods? Multiple labels for a record? I could list them twice
 
 - [ ] clear all input in app.py / create data validations before running add_record function
 - [ ] install security check in create_anew()
@@ -37,7 +38,6 @@ DEV
 ### Prio 2
 
 - [ ] When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
-- [ ] How will I handle split recods? Multiple labels for a record? I could list them twice (with credit worth of 0.5)
 
 ### Meta Things
 
