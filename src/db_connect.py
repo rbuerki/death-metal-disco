@@ -54,8 +54,8 @@ def main(
     """
     # Set default to standard config file an PROD DB
     config_path = config_path or Path.cwd() / "config.yaml"
-    section = section or "DB_DEV"
-
+    section = section or "DB_PROD"
+    # TODO logging where you connect to
     db_params = read_yaml(config_path, section)
     engine = create_engine(db_params)
     session = create_session(engine)

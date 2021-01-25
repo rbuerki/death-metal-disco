@@ -1,10 +1,10 @@
 import datetime as dt
-from pathlib import Path
 
 import streamlit as st
 
-import src.db_functions as db_functions
-import src.utils as utils
+from src import db_connect
+from src import db_functions
+
 
 st.set_page_config(
     page_title="DiscoBase",
@@ -13,11 +13,12 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-path_to_db = (
-    r"C:\Users\r2d4\OneDrive\code\projects\20-02_disco\dev\DeafDiscoBase.db"
-)
-engine = utils.create_engine(path_to_db)
-session = utils.create_session(engine)
+# TODO: does not work because session is created in different thread
+# _, session = db_connect.main()
+
+config_params = db_connect.read_yaml("config.yaml", "DB_PROD")
+engine = db_connect.create_engine(config_params)
+session = db_connect.create_session(engine)
 
 trx_types = [
     "Purchase",
