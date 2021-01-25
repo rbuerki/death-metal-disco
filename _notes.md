@@ -7,10 +7,9 @@
 
 ### Tasks
 
-TODO on Prod (when app.py is redirected to prod)
+PROD
 
-- [ ] update digitized for queensway, frozen soul and desoltated to 1
-- [ ] add 15.1. Sanguisugabogg - Tortured Whole (transp. light blue), lim 200, 25 chf, cm
+- [ ] ...
 
 DEV
 
@@ -19,6 +18,9 @@ DEV
 
 - [ ] create tests for db_functions (maybe rename), create package structure like blogpost medium
 - [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
+
+- [ ] install dropdowns for the db_functions frontend
+- [ ] if I 'update' an artist_country when updating a record, that country is not saved in the db
 
 - [ ] Record label relationships exist, but are not properly displayed in table, because it is many-to-many (check how realpython does, change to one-to-many probably)
 - [ ] How will I handle split recods? Multiple labels for a record? I could list them twice

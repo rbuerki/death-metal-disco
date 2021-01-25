@@ -67,7 +67,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     if record is not None:
         print(
             f"Record '{r_title}' by {r_artist} already exists, insert skipped."
-        )  # TODO Replace this with an update
+        )
         return
 
     if record is None:
