@@ -39,13 +39,13 @@ class MultiApp:
         """
         self.apps.append({"title": title, "app_function": app_function})
 
-    def run_app(self):
+    def run_app(self, *args):
         """Adds a 'Navigation' Selectbox to the sidebar from which
         the added apps can be selected and runs the actually selected
-        application within the main app.
+        application within the main app. Optional args can be passed.
         """
         app = st.sidebar.selectbox(
             "Navigation", self.apps, format_func=lambda app: app["title"]
         )
 
-        app["app_function"]()
+        app["app_function"](*args)

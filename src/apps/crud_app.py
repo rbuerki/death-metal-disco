@@ -2,7 +2,6 @@ import datetime as dt
 
 import streamlit as st
 
-
 from src import db_functions
 
 
@@ -17,7 +16,9 @@ trx_types = [
 ]
 
 
-def run():
+def run(engine, Session):
+
+    session = Session()
 
     trx_type: str = st.selectbox("Transaction Type", trx_types)
     st.write("---")

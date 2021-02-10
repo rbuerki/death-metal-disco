@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple, Union
 
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 def read_yaml(config_path: Union[str, Path], section: Optional[str]) -> Dict:
@@ -35,24 +35,44 @@ def create_engine(db_params: Dict) -> sqlalchemy.engine.Engine:
 def create_session(
     engine: sqlalchemy.engine.Engine,
 ) -> sqlalchemy.orm.session.Session:
-    """Define a Session class bound to the engine and
-    instantiate a session object as workspace for
-    all ORM operations.
+    """Define a Session class bound to the engine and instantiate
+    a session object as workspace for all ORM operations.
     """
     Session = sessionmaker(bind=engine)
     session = Session()
     return session
 
 
-def main(
+def create_scoped_session(
+    engine: sqlalchemy.engine.Engine,
+) -> sqlalchemy.orm.scoping.scoped_session:
+    """Define a tread-save Session class bound to the
+    engine. Use it to create a session object as workspace
+    for all ORM operations per thread.
+
+    For more infos see here:
+    - https://stackoverflow.com/a/18265238/13797028
+    - https://stackoverflow.com/a/9621251/13797028
+
+    (I have combined this with Streamlit's advanced caching.
+    This is probably a somewhat hacky solution. And I should
+    also call Session.remove() when done.)
+    """
+    session_factory = sessionmaker(bind=engine)
+    Session = scoped_session(session_factory)
+    print(type(Session))
+    return Session
+
+
+def get_engine_and_session(
     config_path: Optional[Union[str, Path]] = None,
     section: Optional[str] = None,
 ) -> Tuple[sqlalchemy.engine.Engine, sqlalchemy.orm.session.Session]:
     """Connect to the DB and return the sqlalchemy engine and
-    ORM-session objects. If no specific config_path or section
-    params are passed, the app connects to the PROD DB by default.
+    ORM-session object (not thread save). If no specific config_path or
+    section params are passed, the app connects to the PROD DB by default.
     """
-    # Set default to standard config file an PROD DB
+    # Set default to standard config file and PROD DB
     config_path = config_path or Path.cwd() / "config.yaml"
     section = section or "DB_PROD"
     # TODO logging where you connect to
