@@ -1,16 +1,10 @@
 import streamlit as st
 
+from src.db_declaration import CreditTrx
+
+
+# DEV SECTION
 import src.db_connect as db_connect
-from src.multiapp import MultiApp
-from src.apps import stats_app, crud_app
-
-
-st.set_page_config(
-    page_title="DiscoBase",
-    page_icon="🦇",
-    layout="centered",
-    initial_sidebar_state="auto",
-)
 
 
 @st.cache(allow_output_mutation=True)
@@ -25,16 +19,27 @@ def get_engine_and_scoped_session():
 
 
 engine, Session = get_engine_and_scoped_session()
+session = Session()
+
+result = (
+    session.query(CreditTrx.credit_saldo)
+    .order_by(CreditTrx.credit_trx_id.desc())
+    .first()[0]
+)
+st.write(f"Actual Credit Saldo: {result}")
 
 
-st.title("Death Metal Disco")
-st.write(Session)
+# PROD SECTION
 
-multiapp = MultiApp()
 
-# Add application pages here
-multiapp.add_app("STATS", stats_app.run)
-multiapp.add_app("CRUD", crud_app.run)
+def run(engine, Session):
 
-# Run the main app # TODO add args for session ...
-multiapp.run_app(engine, Session)
+    # session = Session()
+
+    # st.write(
+    #     session.query(CreditTrx).order_by(CreditTrx.credit_trx_id.desc)[0][0]
+    # )
+
+    st.write("test again")
+
+    Session.remove()

@@ -60,7 +60,6 @@ def create_scoped_session(
     """
     session_factory = sessionmaker(bind=engine)
     Session = scoped_session(session_factory)
-    print(type(Session))
     return Session
 
 

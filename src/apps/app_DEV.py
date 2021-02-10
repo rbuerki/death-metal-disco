@@ -1,3 +1,6 @@
+# OLD STANDALONE APP, CAN THEN BE REMOVED
+
+
 import datetime as dt
 
 import streamlit as st
