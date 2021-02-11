@@ -108,7 +108,7 @@ def run(engine, Session):
                 genre = st.text_input("Genre", value=record.genre.genre_name)
                 label = st.text_input(
                     "Label",
-                    value=" / ".join(
+                    value="; ".join(
                         [label.label_name for label in record.labels]
                     ),
                 )

@@ -48,7 +48,8 @@ def create_scoped_session(
 ) -> sqlalchemy.orm.scoping.scoped_session:
     """Define a tread-save Session class bound to the
     engine. Use it to create a session object as workspace
-    for all ORM operations per thread.
+    for all ORM operations per thread. Sessions have to
+    be instantiated within each thread.
 
     For more infos see here:
     - https://stackoverflow.com/a/18265238/13797028
@@ -61,6 +62,9 @@ def create_scoped_session(
     session_factory = sessionmaker(bind=engine)
     Session = scoped_session(session_factory)
     return Session
+
+
+# NOTE: The following 'main' function returns a not-scoped session
 
 
 def get_engine_and_session(

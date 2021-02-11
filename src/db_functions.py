@@ -207,6 +207,8 @@ def update_record(session, record_data: Dict):
             artist_name=r_artist, artist_country=record_data["artist_country"]
         )
         session.add(artist)
+    else:
+        artist.artist_country = record_data["artist_country"]
 
     # Check if the format already exists or has to be created
     record_format = (
@@ -217,6 +219,8 @@ def update_record(session, record_data: Dict):
     if record_format is None:
         record_format = RecordFormat(format_name=r_format)
         session.add(record_format)
+    else:
+        record_format.format_name = r_format
 
     # Check if the genre already exists or has to be created
     genre = (
@@ -227,6 +231,8 @@ def update_record(session, record_data: Dict):
     if genre is None:
         genre = Genre(genre_name=r_genre)
         session.add(genre)
+    else:
+        genre.genre_name = r_genre
 
     # Check if the label already exists or has to be created
     label = (
@@ -237,6 +243,8 @@ def update_record(session, record_data: Dict):
     if label is None:
         label = Label(label_name=r_label)
         session.add(label)
+    else:
+        label.label_name = r_label
 
     # # Create a purchase trx  TODO For reactivations I could charge a Credit Trx
     # credit_value = record_data["credit_value"] * -1
