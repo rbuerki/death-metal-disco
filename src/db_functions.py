@@ -3,8 +3,10 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
+import pandas as pd
 import sqlalchemy
 
+import src.db_connect as db_connect
 from src.db_declaration import (
     Artist,
     Genre,
@@ -15,7 +17,7 @@ from src.db_declaration import (
 )
 
 
-CONFIG_PATH = (Path.cwd().parent / "config.cfg").absolute()
+CONFIG_PATH = (Path.cwd().parent / "config.yaml").absolute()
 
 
 def fetch_a_record_from_the_shelf(
@@ -161,7 +163,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     session.commit()
 
 
-def update_record(session, record_data: Dict):
+def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """Update the properties of an existing record in the DB.
     The record data is passed as a dictionary and data that
     has changed will be updated to the new values.
@@ -280,7 +282,9 @@ def update_record(session, record_data: Dict):
     session.commit()
 
 
-def set_record_to_inactive(session, record_data: Dict):
+def set_record_to_inactive(
+    session: sqlalchemy.orm.session.Session, record_data: Dict
+):
     """Set a the status of a record to inactive. This is equivalent
     to a removal, because records are never fully deleted. This
     triggers a transaction with type "Removal" and can lead to a
@@ -332,7 +336,9 @@ def set_record_to_inactive(session, record_data: Dict):
             session.commit()
 
 
-def add_regular_credits(session, interval_days: int = 10):
+def add_regular_credits(
+    session: sqlalchemy.orm.session.Session, interval_days: int = 10
+):
     """Every x days a new credit is added (to be spent
     on purchasing new records). This function checks
     the delta in days since the last addition and inserts
@@ -365,7 +371,9 @@ def add_regular_credits(session, interval_days: int = 10):
     session.commit()
 
 
-def _get_days_since_last_addition(session) -> Tuple[dt.date, int]:
+def _get_days_since_last_addition(
+    session: sqlalchemy.orm.session.Session,
+) -> Tuple[dt.date, int]:
     """Return the date of and the number of days since the
     last transaction with type 'Addition' stored in the
     CreditTrx table. (This is called within 'add_credit').
@@ -391,3 +399,109 @@ def create_DB_anew(
     """
     Base.metadata.drop_all(engine, checkfirst=True)
     Base.metadata.create_all(engine)
+
+
+# EXPORT DATA
+
+
+def export_db_data_to_2_parquet_files(
+    session: sqlalchemy.orm.session.Session,
+    engine: sqlalchemy.engine.Engine,
+    config_path: Path,
+):
+    """Create 2 tabular parquet files, one with record-related
+    data (incl. information on artists, genres, labels), and one that
+    is a copy of the `credit_trx` table. With help of these files the
+    database can be repopulated after a complete reset.
+    """
+
+    record_df_tuple = _save_record_related_data_to_df(session)
+    credit_trx_df_tuple = _save_credit_trx_table_to_df(engine)
+
+    for df_tuple in [record_df_tuple, credit_trx_df_tuple]:
+        _save_df_to_parquet(df_tuple, config_path)
+
+
+def _save_record_related_data_to_df(
+    session: sqlalchemy.orm.session.Session,
+) -> Tuple[str, pd.DataFrame]:
+    """Save all record-related data to Pandas Dataframe and return a
+    tuple with a dataframe name string and the dataframe. Called
+    within `export_db_data_to_2_parquet_files`.
+    """
+    result_list = session.query(Record).order_by(Record.record_id).all()
+    dict_list = []
+
+    for result in result_list:
+        record_data_dict = {
+            "record_id": result.record_id,
+            "artist": result.artist.artist_name,  # TODO: has to be adapted to many-to-many
+            "artist_country": result.artist.artist_country,  # TODO: has to be adapted to many-to-many
+            "title": result.title,
+            "genre": result.genre.genre_name,
+            "label": [label.label_name for label in result.labels],
+            "year": result.year,
+            "record_format": result.record_format.format_name,
+            "vinyl_color": result.vinyl_color,
+            "lim_edition": result.lim_edition,
+            "number": result.number,
+            "remarks": result.remarks,
+            "price": result.price,
+            "digitized": result.digitized,
+            "rating": result.rating,  # TODO: has to be datapted to one-to-many
+            "is_active": result.active,
+            "purchase_date": result.purchase_date,
+        }
+        dict_list.append(record_data_dict)
+
+    records_df = pd.DataFrame(dict_list, columns=dict_list[0].keys())
+    records_df.set_index("record_id", drop=True, inplace=True)
+    df_name = "record_data"
+
+    if (
+        not records_df.index.is_monotonic_increasing
+        and not records_df.index.is_unique
+    ):
+        raise AssertionError("record_ids are messed up, please check data.")
+
+    return df_name, records_df
+
+
+def _save_credit_trx_table_to_df(
+    engine: sqlalchemy.engine.Engine,
+) -> Tuple[str, pd.DataFrame]:
+    """Copy credit_trx_table to Pandas Dataframe and return a tuple
+    with a dataframe name string and the dataframe. Called within
+    `export_db_data_to_2_parquet_files`.
+    """
+    credit_trx_df = pd.read_sql("credit_trx", engine)
+    credit_trx_df.set_index("credit_trx_id", drop=True, inplace=True)
+    df_name = "trx_data"
+
+    if (
+        not credit_trx_df.index.is_monotonic_increasing
+        and not credit_trx_df.index.is_unique
+    ):
+        raise AssertionError("record_ids are messed up, please check data.")
+
+    return df_name, credit_trx_df
+
+
+def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
+    """Create date and timestamped directory and file name at path
+    defined in config.yaml and save dataframe as back-up to parquet.
+    Called within `export_db_data_to_2_parquet_files`.
+    """
+    df_name, df = df_tuple
+    date_stamp = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d")
+    datetime_stamp = dt.datetime.strftime(
+        dt.datetime.now(), "%Y-%m-%d-%H-%M-%S"
+    )
+
+    back_up_params = db_connect.read_yaml(config_path, "BACK_UP")
+    rel_path = back_up_params["REL_PATH"]
+    target = Path.cwd() / rel_path / f"{date_stamp}"
+    Path.mkdir(target, parents=True, exist_ok=True)
+
+    full_path = target / f"{df_name}_{datetime_stamp}.parquet"
+    df.to_parquet(full_path)
