@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import sqlalchemy
 
-import src.db_connect as db_connect
+from src import db_connect
 from src.db_declaration import (
     Artist,
     Genre,
@@ -17,7 +17,7 @@ from src.db_declaration import (
 )
 
 
-CONFIG_PATH = (Path.cwd().parent / "config.yaml").absolute()
+# CONFIG_PATH = (Path.cwd().parent / "config.yaml").absolute()
 
 
 def fetch_a_record_from_the_shelf(
@@ -447,16 +447,25 @@ def _save_record_related_data_to_df(
             "number": result.number,
             "remarks": result.remarks,
             "price": result.price,
-            "digitized": result.digitized,
-            "rating": result.rating,  # TODO: has to be datapted to one-to-many
-            "is_active": result.active,
             "purchase_date": result.purchase_date,
+            "rating": result.rating,  # TODO: has to be datapted to one-to-many
+            "is_digitized": result.digitized,
+            "is_active": result.active,
         }
         dict_list.append(record_data_dict)
 
     records_df = pd.DataFrame(dict_list, columns=dict_list[0].keys())
     records_df.set_index("record_id", drop=True, inplace=True)
     df_name = "record_data"
+
+    records_df = records_df.replace("None", np.nan)
+    for col in ["is_digitized", "is_active"]:
+        records_df[col] = records_df[col].astype(bool)
+    for col in ["rating", "price"]:
+        records_df[col] = records_df[col].astype(float)
+    records_df["purchase_date"] = records_df["purchase_date"].astype(
+        "datetime64"
+    )
 
     if (
         not records_df.index.is_monotonic_increasing
@@ -502,6 +511,6 @@ def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
     rel_path = back_up_params["REL_PATH"]
     target = Path.cwd() / rel_path / f"{date_stamp}"
     Path.mkdir(target, parents=True, exist_ok=True)
-
     full_path = target / f"{df_name}_{datetime_stamp}.parquet"
+
     df.to_parquet(full_path)
