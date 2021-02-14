@@ -446,8 +446,8 @@ def _save_record_related_data_to_df(
             "lim_edition": result.lim_edition,
             "number": result.number,
             "remarks": result.remarks,
-            "price": result.price,
             "purchase_date": result.purchase_date,
+            "price": result.price,
             "rating": result.rating,  # TODO: has to be datapted to one-to-many
             "is_digitized": result.digitized,
             "is_active": result.active,

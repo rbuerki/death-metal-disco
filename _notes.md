@@ -12,15 +12,13 @@ PROD
 
 DEV - MODEL
 
-- [ ] Export data to csv with proper function
+- [x] add datachecks in db model
+- [x] rename active column to is_active, is_digitized, change col order
+- [x] remove id cols that are not needed
+- [x] create ArtistRecordLink, adapt relations
+- [x] create ratings table
 
-- [ ] add datachecks in db model
-- [ ] rename acitve column to is_active
-- [ ] create ArtistRecordLink, adapt relations
-- [ ] create ratings table
-- [ ] - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
-
-- [ ] Adapt Export to handle m-t-m artists
+- [ ] Adapt Export function data dict to handle m-t-m artists and ratings (see TODOS)
 - [ ] Import data with proper function
 
 ``` python
@@ -29,6 +27,10 @@ DEV - MODEL
     for a in l:
         print(a.strip())
 ```
+
+- [ ] - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
+
+
 
 - [ ] Within update: if a rating is made, then I should write to the ratings table
 - [ ] Within update:  also it should be possible ro re-add inactive records! (and to pay for it in credits!)
