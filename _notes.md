@@ -18,19 +18,19 @@ DEV - MODEL
 - [x] create ArtistRecordLink, adapt relations
 - [x] create ratings table
 
+- [ ] Import data into new db with new model with proper function
+- [ ] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
 - [ ] Adapt Export function data dict to handle m-t-m artists and ratings (see TODOS)
-- [ ] Import data with proper function
 
+- [ ] Update Frontend, assert len(artist) == len(artist_country)
 ``` python
     string = "Witch Vomit; Coffins"
-    l = string.split("/")
+    l = string.split("; ")
     for a in l:
         print(a.strip())
 ```
 
 - [ ] - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
-
-
 
 - [ ] Within update: if a rating is made, then I should write to the ratings table
 - [ ] Within update:  also it should be possible ro re-add inactive records! (and to pay for it in credits!)
@@ -50,10 +50,6 @@ DEV - FRONTEND
 - [ ] create data validations before running add_record function ...
 - [ ] install security check in create_anew()
 - [ ] all files: check the many TODOs
-
-### Prio 2
-
-- [ ] - [ ] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
 
 ### Meta Things
 

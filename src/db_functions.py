@@ -1,6 +1,6 @@
 import datetime as dt
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ from src.db_declaration import (
 
 
 def fetch_a_record_from_the_shelf(
-    session: sqlalchemy.orm.session.Session, artist: str, title: str
+    session: sqlalchemy.orm.session.Session, artist: List[str], title: str
 ) -> sqlalchemy.orm.query.Query:
     """Query a record by title, artist and (optional) year,
     Return the query result object. Returns None if no record is
@@ -32,7 +32,9 @@ def fetch_a_record_from_the_shelf(
         .join(Artist)
         .filter(
             (Record.title.ilike(title)),
-            (Artist.artist_name.ilike(artist))
+            (
+                Artist.artist_name.ilike(artist[0])
+            )  # TODO checks for first artist only
             # (Record.label_ids.any(Label.label_name == r_label)),  TODO
         )
         .one_or_none()
@@ -48,23 +50,14 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """
     assert record_data["trx_type"] == "Purchase" or "Initial Load"
 
-    r_artist = record_data["artist"]
-    r_title = record_data["title"]
-    r_format = record_data["record_format"]
-    r_genre = record_data["genre"]
-    r_label = record_data["label"]
+    r_artist: List[str] = record_data["artist"]
+    r_title: str = record_data["title"]
+    r_format: str = record_data["record_format"]
+    r_genre: str = record_data["genre"]
+    r_label: List[str] = record_data["label"]
 
     # Check if record already exists
-    record = (
-        session.query(Record)
-        .join(Artist)
-        .filter(
-            (Record.title.ilike(r_title)),
-            (Artist.artist_name.ilike(r_artist))
-            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
-        )
-        .one_or_none()
-    )
+    record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
 
     if record is not None:
         print(
@@ -88,16 +81,33 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
         )
 
     # Check if the artist already exists or has to be created
-    artist = (
-        session.query(Artist)
-        .filter(Artist.artist_name.ilike(r_artist))
-        .one_or_none()
-    )
-    if artist is None:
-        artist = Artist(
-            artist_name=r_artist, artist_country=record_data["artist_country"]
+    artist_list = []
+    for n, a in enumerate(r_artist):
+        artist = (
+            session.query(Artist)
+            .filter(Artist.artist_name.ilike(a))
+            .one_or_none()
         )
-        session.add(artist)
+        if artist is None:
+            artist = Artist(
+                artist_name=r_artist,
+                artist_country=record_data["artist_country"][n],
+            )
+            session.add(artist)
+
+        artist_list.append(artist)
+
+    # Check if the label already exists or has to be created
+    label_list = []
+    for l in r_label:
+        label = (
+            session.query(Label).filter(Label.label_name.ilike(l)).one_or_none()
+        )
+        if label is None:
+            label = Label(label_name=r_label)
+            session.add(label)
+
+        label_list.append(label)
 
     # Check if the format already exists or has to be created
     record_format = (
@@ -119,16 +129,6 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
         genre = Genre(genre_name=r_genre)
         session.add(genre)
 
-    # Check if the label already exists or has to be created
-    label = (
-        session.query(Label)
-        .filter(Label.label_name.ilike(r_label))
-        .one_or_none()
-    )
-    if label is None:
-        label = Label(label_name=r_label)
-        session.add(label)
-
     # Create a purchase trx
     credit_value = record_data["credit_value"] * -1
     try:
@@ -138,7 +138,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
             .all()[-1][0]
         )
     except IndexError:
-        # This is for initial data_ingestion only
+        # This is in case of initial data_ingestion only
         credit_saldo = 0
 
     credit_trx = CreditTrx(
@@ -149,15 +149,19 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     )
 
     # Finally: Initialize the record relationships
-    record.artist = artist
     record.record_format = record_format
     record.genre = genre
     record.credit_trx.append(credit_trx)
 
-    record.labels.append(label)
-    artist.labels.append(label)
-    artist.genres.append(genre)
-    genre.labels.append(label)
+    for artist in artist_list:
+        record.artists.append(artist)
+        artist.genres.append(genre)
+        for label in label_list:
+            artist.labels.append(label)
+
+    for label in label_list:
+        record.labels.append(label)
+        genre.labels.append(label)
 
     session.add(record)
     session.commit()
@@ -170,11 +174,11 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """
     assert record_data["trx_type"] == "Update"
 
-    r_artist = record_data["artist"]
-    r_title = record_data["title"]
-    r_format = record_data["record_format"]
-    r_genre = record_data["genre"]
-    r_label = record_data["label"]
+    r_artist: List[str] = record_data["artist"]
+    r_title: str = record_data["title"]
+    r_format: str = record_data["record_format"]
+    r_genre: str = record_data["genre"]
+    r_label: List[str] = record_data["label"]
 
     # Check if record already exists
     record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
@@ -199,18 +203,37 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
         record.active = record_data["active"]
 
     # Check if the artist already exists or has to be created
-    artist = (
-        session.query(Artist)
-        .filter(Artist.artist_name.ilike(r_artist))
-        .one_or_none()
-    )
-    if artist is None:
-        artist = Artist(
-            artist_name=r_artist, artist_country=record_data["artist_country"]
+    artist_list = []
+    for n, a in enumerate(r_artist):
+        artist = (
+            session.query(Artist)
+            .filter(Artist.artist_name.ilike(a))
+            .one_or_none()
         )
-        session.add(artist)
-    else:
-        artist.artist_country = record_data["artist_country"]
+        if artist is None:
+            artist = Artist(
+                artist_name=r_artist,
+                artist_country=record_data["artist_country"][n],
+            )
+            session.add(artist)
+        else:
+            artist.artist_country = record_data["artist_country"][n]
+
+        artist_list.append(artist)
+
+    # Check if the label already exists or has to be created TODO
+    label_list = []
+    for l in r_label:
+        label = (
+            session.query(Label).filter(Label.label_name.ilike(l)).one_or_none()
+        )
+        if label is None:
+            label = Label(label_name=l)
+            session.add(label)
+        else:
+            label.label_name = l
+
+        label_list.append(label)
 
     # Check if the format already exists or has to be created
     record_format = (
@@ -236,18 +259,6 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     else:
         genre.genre_name = r_genre
 
-    # Check if the label already exists or has to be created
-    label = (
-        session.query(Label)
-        .filter(Label.label_name.ilike(r_label))
-        .one_or_none()
-    )
-    if label is None:
-        label = Label(label_name=r_label)
-        session.add(label)
-    else:
-        label.label_name = r_label
-
     # # Create a purchase trx  TODO For reactivations I could charge a Credit Trx
     # credit_value = record_data["credit_value"] * -1
     # try:
@@ -268,15 +279,18 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     # )
 
     # Finally: Initialize the record relationships
-    record.artist = artist
     record.record_format = record_format
     record.genre = genre
-    # record.credit_trx.append(credit_trx)
 
-    record.labels.append(label)
-    artist.labels.append(label)
-    artist.genres.append(genre)
-    genre.labels.append(label)
+    for artist in artist_list:
+        record.artists.append(artist)
+        artist.genres.append(genre)
+        for label in label_list:
+            artist.labels.append(label)
+
+    for label in label_list:
+        record.labels.append(label)
+        genre.labels.append(label)
 
     session.add(record)
     session.commit()
@@ -415,14 +429,14 @@ def export_db_data_to_2_parquet_files(
     database can be repopulated after a complete reset.
     """
 
-    record_df_tuple = _save_record_related_data_to_df(session)
-    credit_trx_df_tuple = _save_credit_trx_table_to_df(engine)
+    record_df_tuple = _load_record_related_data_to_df(session)
+    credit_trx_df_tuple = _load_credit_trx_table_to_df(engine)
 
     for df_tuple in [record_df_tuple, credit_trx_df_tuple]:
         _save_df_to_parquet(df_tuple, config_path)
 
 
-def _save_record_related_data_to_df(
+def _load_record_related_data_to_df(
     session: sqlalchemy.orm.session.Session,
 ) -> Tuple[str, pd.DataFrame]:
     """Save all record-related data to Pandas Dataframe and return a
@@ -435,8 +449,8 @@ def _save_record_related_data_to_df(
     for result in result_list:
         record_data_dict = {
             "record_id": result.record_id,
-            "artist": result.artist.artist_name,  # TODO: has to be adapted to many-to-many
-            "artist_country": result.artist.artist_country,  # TODO: has to be adapted to many-to-many
+            "artist": result.artist.artist_name,  # TODO: has to be adapted to many-to-many - see labels
+            "artist_country": result.artist.artist_country,  # TODO: has to be adapted to many-to-many - see labels
             "title": result.title,
             "genre": result.genre.genre_name,
             "label": [label.label_name for label in result.labels],
@@ -476,7 +490,7 @@ def _save_record_related_data_to_df(
     return df_name, records_df
 
 
-def _save_credit_trx_table_to_df(
+def _load_credit_trx_table_to_df(
     engine: sqlalchemy.engine.Engine,
 ) -> Tuple[str, pd.DataFrame]:
     """Copy credit_trx_table to Pandas Dataframe and return a tuple
@@ -502,15 +516,14 @@ def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
     Called within `export_db_data_to_2_parquet_files`.
     """
     df_name, df = df_tuple
-    date_stamp = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d")
     datetime_stamp = dt.datetime.strftime(
         dt.datetime.now(), "%Y-%m-%d-%H-%M-%S"
     )
 
     back_up_params = db_connect.read_yaml(config_path, "BACK_UP")
     rel_path = back_up_params["REL_PATH"]
-    target = Path.cwd() / rel_path / f"{date_stamp}"
-    Path.mkdir(target, parents=True, exist_ok=True)
-    full_path = target / f"{df_name}_{datetime_stamp}.parquet"
+    target_folder = Path.cwd() / rel_path
+    Path.mkdir(target_folder, parents=True, exist_ok=True)
+    full_path = target_folder / f"{df_name}_{datetime_stamp}.parquet"
 
     df.to_parquet(full_path)
