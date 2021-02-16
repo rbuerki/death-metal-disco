@@ -1,13 +1,13 @@
 import datetime as dt
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Sequence, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import sqlalchemy
 
 from src import db_connect
-from src.db_declaration import (
+from src.db_declaration2 import (
     Artist,
     Genre,
     Label,
@@ -21,21 +21,19 @@ from src.db_declaration import (
 
 
 def fetch_a_record_from_the_shelf(
-    session: sqlalchemy.orm.session.Session, artist: List[str], title: str
-) -> sqlalchemy.orm.query.Query:
+    session: sqlalchemy.orm.session.Session, artist: Sequence[str], title: str
+) -> Optional[Record]:
     """Query a record by title, artist and (optional) year,
     Return the query result object. Returns None if no record is
     found, raises an error if more than one record is matched.
+
+    NOTE / TODO: Checks for first artist only in case of splits.
     """
     record = (
         session.query(Record)
-        .join(Artist)
         .filter(
             (Record.title.ilike(title)),
-            (
-                Artist.artist_name.ilike(artist[0])
-            )  # TODO checks for first artist only
-            # (Record.label_ids.any(Label.label_name == r_label)),  TODO
+            (Record.artists.any(artist_name=artist[0])),
         )
         .one_or_none()
     )
@@ -50,11 +48,11 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """
     assert record_data["trx_type"] == "Purchase" or "Initial Load"
 
-    r_artist: List[str] = record_data["artist"]
+    r_artist: Sequence[str] = record_data["artist"]
     r_title: str = record_data["title"]
     r_format: str = record_data["record_format"]
     r_genre: str = record_data["genre"]
-    r_label: List[str] = record_data["label"]
+    r_label: Sequence[str] = record_data["label"]
 
     # Check if record already exists
     record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
@@ -75,9 +73,9 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
             remarks=record_data["remarks"],
             purchase_date=record_data["purchase_date"],
             price=record_data["price"],
-            digitized=record_data["digitized"],
             rating=record_data["rating"],
-            active=record_data["active"],
+            is_digitized=record_data["is_digitized"],
+            is_active=record_data["is_active"],
         )
 
     # Check if the artist already exists or has to be created
@@ -90,8 +88,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
         )
         if artist is None:
             artist = Artist(
-                artist_name=r_artist,
-                artist_country=record_data["artist_country"][n],
+                artist_name=a, artist_country=record_data["artist_country"][n],
             )
             session.add(artist)
 
@@ -104,7 +101,7 @@ def add_new_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
             session.query(Label).filter(Label.label_name.ilike(l)).one_or_none()
         )
         if label is None:
-            label = Label(label_name=r_label)
+            label = Label(label_name=l)
             session.add(label)
 
         label_list.append(label)
@@ -174,11 +171,11 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """
     assert record_data["trx_type"] == "Update"
 
-    r_artist: List[str] = record_data["artist"]
+    r_artist: Sequence[str] = record_data["artist"]
     r_title: str = record_data["title"]
     r_format: str = record_data["record_format"]
     r_genre: str = record_data["genre"]
-    r_label: List[str] = record_data["label"]
+    r_label: Sequence[str] = record_data["label"]
 
     # Check if record already exists
     record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
@@ -198,9 +195,9 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
         record.remarks = record_data["remarks"]
         record.purchase_date = record_data["purchase_date"]
         record.price = record_data["price"]
-        record.digitized = record_data["digitized"]
+        record.is_digitized = record_data["is_digitized"]
         record.rating = record_data["rating"]
-        record.active = record_data["active"]
+        record.is_active = record_data["is_active"]
 
     # Check if the artist already exists or has to be created
     artist_list = []
@@ -317,7 +314,7 @@ def set_record_to_inactive(
         return
 
     if record is not None:
-        if record.active == 0:
+        if record.is_active == 0:
             print(
                 f"Status of record '{r_title}' by {r_artist} is "
                 f"already 0, please check."
@@ -325,7 +322,7 @@ def set_record_to_inactive(
             return
 
         else:
-            record.active = 0
+            record.is_active = 0
             print("Record set to inactive.")
 
             # Create a Removal trx
@@ -463,8 +460,8 @@ def _load_record_related_data_to_df(
             "purchase_date": result.purchase_date,
             "price": result.price,
             "rating": result.rating,  # TODO: has to be datapted to one-to-many
-            "is_digitized": result.digitized,
-            "is_active": result.active,
+            "is_digitized": result.is_digitized,
+            "is_active": result.is_active,
         }
         dict_list.append(record_data_dict)
 

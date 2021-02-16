@@ -20,11 +20,11 @@ Base = declarative_base()
 class Record(Base):
     __tablename__ = "records"
     record_id = Column("record_id", Integer, primary_key=True)
-    # artist_id = Column("artist_id", Integer, ForeignKey("artists.artist_id")) # TODO
+    # artist_id = Column("artist_id", Integer, ForeignKey("artists.artist_id"))
+    # label_id = Column("label", Integer, ForeignKey("labels.label_id"))
     title = Column("title", String, nullable=False)
-    genre_id = Column("genre_id", Integer, ForeignKey("genres.genre_id"))
-    # label_id = Column("label", Integer, ForeignKey("labels.label_id"))  # TODO
     year = Column("year", Integer)
+    genre_id = Column("genre_id", Integer, ForeignKey("genres.genre_id"))
     format_id = Column("format_id", Integer, ForeignKey("formats.format_id"))
     vinyl_color = Column("vinyl_color", String)
     lim_edition = Column("lim_edition", String)
@@ -33,13 +33,12 @@ class Record(Base):
     purchase_date = Column("purchase_date", Date, nullable=False)
     price = Column("price", Numeric, nullable=False)
     rating = Column("rating", Integer)  # TODO
-    is_digitized = Column("digitized", Integer, nullable=False)
-    is_active = Column("active", Integer, nullable=False)
+    is_digitized = Column("is_digitized", Integer, nullable=False)
+    is_active = Column("is_active", Integer, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
     # Many-to-one relationships
-    artist = relationship("Artist", back_populates="records")
     genre = relationship("Genre", back_populates="records")
     record_format = relationship("RecordFormat", back_populates="records")
     # One-to-many relationships
@@ -57,7 +56,7 @@ class Record(Base):
         return (
             f"<Record(record_id={self.record_id}, "
             f"title={self.title}, "
-            f"artist_id={self.artist_id})>"
+            f"artist={self.artists})>"
         )
 
 
@@ -126,7 +125,7 @@ class Label(Base):
         "Genre", secondary="genre_label_link", back_populates="labels"
     )
     records = relationship(
-        "Record", secondary="record_label_link", back_populates="labels"
+        "Record", secondary="label_record_link", back_populates="labels"
     )
 
     def __repr__(self):
