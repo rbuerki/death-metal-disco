@@ -21,7 +21,9 @@ from src.db_declaration import (
 
 
 def fetch_a_record_from_the_shelf(
-    session: sqlalchemy.orm.session.Session, artist: Sequence[str], title: str
+    session: sqlalchemy.orm.session.Session,
+    artist: Union[str, Sequence[str]],
+    title: str,
 ) -> Optional[Record]:
     """Query a record by title, artist and (optional) year,
     Return the query result object. Returns None if no record is
@@ -29,6 +31,9 @@ def fetch_a_record_from_the_shelf(
 
     NOTE / TODO: Checks for first artist only in case of splits.
     """
+    if isinstance(artist, str):
+        artist = [a.strip() for a in artist.split(";")]
+
     record = (
         session.query(Record)
         .filter(
