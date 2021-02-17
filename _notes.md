@@ -8,21 +8,18 @@
 
 PROD
 
-- [ ] ...
+- [ ] children of the night is digitized
+- [ ] Clean-up record splits manually
 
 DEV - MODEL
 
-- [x] add datachecks in db model
-- [x] rename active column to is_active, is_digitized, change col order
-- [x] remove id cols that are not needed
-- [x] create ArtistRecordLink, adapt relations
-- [x] create ratings table
-
-- [ ] Import data into new db with new model with proper function
-- [ ] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
-- [ ] Adapt Export function data dict to handle m-t-m artists and ratings (see TODOS)
+- [x] Import data into new db with new model with proper function
+- x] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
+- [x] Adapt Export function data dict to handle m-t-m artists and ratings (see TODOS)
+- [ ] re-export and re-import to make sure everything works properly
 
 - [ ] Update Frontend, assert len(artist) == len(artist_country)
+  
 ``` python
     string = "Witch Vomit; Coffins"
     l = string.split("; ")
@@ -30,7 +27,12 @@ DEV - MODEL
         print(a.strip())
 ```
 
-- [ ] - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
+- [ ] implement relationships for ratings table:
+  - ... in db_declaration
+  - ... in db_functions add_ / udpate_ and export
+  - ... frontend crud
+
+- [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
 
 - [ ] Within update: if a rating is made, then I should write to the ratings table
 - [ ] Within update:  also it should be possible ro re-add inactive records! (and to pay for it in credits!)
@@ -56,7 +58,6 @@ DEV - FRONTEND
 - [ ] Document the CreditTrx Table, which 4 TrxTypes are possible, the logic etc.
 - [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships (this is not exacty true, see realpyhton table declaration)
 - [ ] Document the connect.ipynb on github
-
 
 If I use pd.to_sql, then obviously I do not insert in an existing table (?) but create a new, overwrite the schema. I have to check that
 It would be better to bulk insert into the table instead of doing like I do now.

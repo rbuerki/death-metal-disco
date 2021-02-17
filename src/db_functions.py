@@ -1,13 +1,13 @@
 import datetime as dt
 from pathlib import Path
-from typing import Dict, Sequence, Optional, Tuple
+from typing import Dict, Sequence, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import sqlalchemy
 
 from src import db_connect
-from src.db_declaration2 import (
+from src.db_declaration import (
     Artist,
     Genre,
     Label,
@@ -33,7 +33,7 @@ def fetch_a_record_from_the_shelf(
         session.query(Record)
         .filter(
             (Record.title.ilike(title)),
-            (Record.artists.any(artist_name=artist[0])),
+            (Record.artists.any(Artist.artist_name.ilike(artist[0]))),
         )
         .one_or_none()
     )
@@ -218,7 +218,7 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
 
         artist_list.append(artist)
 
-    # Check if the label already exists or has to be created TODO
+    # Check if the label already exists or has to be created
     label_list = []
     for l in r_label:
         label = (
@@ -401,17 +401,6 @@ def _get_days_since_last_addition(
     return last_addition_date, days_since_last
 
 
-def create_DB_anew(
-    engine: sqlalchemy.engine.Engine,
-    Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
-):
-    """Drop all existing tables from the database
-    and create them anew. WARNING!
-    """
-    Base.metadata.drop_all(engine, checkfirst=True)
-    Base.metadata.create_all(engine)
-
-
 # EXPORT DATA
 
 
@@ -446,8 +435,10 @@ def _load_record_related_data_to_df(
     for result in result_list:
         record_data_dict = {
             "record_id": result.record_id,
-            "artist": result.artist.artist_name,  # TODO: has to be adapted to many-to-many - see labels
-            "artist_country": result.artist.artist_country,  # TODO: has to be adapted to many-to-many - see labels
+            "artist": [artist.artist_name for artist in result.artists],
+            "artist_country": [
+                artist.artist_country for artist in result.artists
+            ],
             "title": result.title,
             "genre": result.genre.genre_name,
             "label": [label.label_name for label in result.labels],
@@ -459,7 +450,7 @@ def _load_record_related_data_to_df(
             "remarks": result.remarks,
             "purchase_date": result.purchase_date,
             "price": result.price,
-            "rating": result.rating,  # TODO: has to be datapted to one-to-many
+            "rating": result.rating,  # TODO: has to be atapted to one-to-many
             "is_digitized": result.is_digitized,
             "is_active": result.is_active,
         }
@@ -524,3 +515,114 @@ def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
     full_path = target_folder / f"{df_name}_{datetime_stamp}.parquet"
 
     df.to_parquet(full_path)
+
+
+# RESET AND IMPORT DATA
+
+
+def reset_db_with_backup_data(
+    engine: sqlalchemy.engine.Engine,
+    session: sqlalchemy.orm.session.Session,
+    Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
+    config_path: Union[Path, str],
+    record_data_file: Union[Path, str],
+    trx_data_file: Union[Path, str],
+):
+    """Drop and re-create the DB (losing all existing data in it)
+    and repopulate it with backup-data from two parquet files.
+    """
+    record_data, trx_data = _load_backup_data_from_parquet(
+        config_path, record_data_file, trx_data_file
+    )
+    _drop_and_reset_DB(engine, Base)
+    _insert_record_data_with_sqlalchemy_orm(session, record_data)
+    _truncate_credit_trx_table(engine, CreditTrx)
+    _insert_trx_data_with_sqlalchemy_core(engine, trx_data, CreditTrx)
+    print("Reset successful!")
+
+
+def _load_backup_data_from_parquet(
+    config_path: Union[Path, str],
+    record_data_file: Union[Path, str],
+    trx_data_file: Union[Path, str],
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Load the two back-up files with the record-related and
+    the credit_trx data into Pandas DataFrames. Pass the file
+    names only, the full path to the back-up folder defined
+    with help of the config file "BACK_UP" parameters.
+    (Called within `reset_db_with_backup_data`.)
+    """
+
+    back_up_params = db_connect.read_yaml(config_path, "BACK_UP")
+    rel_path = back_up_params["REL_PATH"]
+    target_folder = Path.cwd() / rel_path
+
+    df_list = []
+    for file in [record_data_file, trx_data_file]:
+        full_path = target_folder / file
+
+        df = pd.read_parquet(full_path)
+        df_list.append(df)
+
+    return df_list[0], df_list[1]
+
+
+def _drop_and_reset_DB(
+    engine: sqlalchemy.engine.Engine,
+    Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
+):
+    """Drop all existing tables from the database
+    and create them anew. WARNING - ALL DATA LOST!
+    (Called within `reset_db_with_backup_data`.)
+    """
+    Base.metadata.drop_all(engine, checkfirst=True)
+    Base.metadata.create_all(engine)
+
+
+def _insert_record_data_with_sqlalchemy_orm(
+    session: sqlalchemy.orm.session.Session, record_data: pd.DataFrame
+):
+    """Import the record related data using the regular `add_record`
+    function. (This populates the recrods, artists, genres, record_formats,
+    and labels tables.) - That's why we first have to add trx values,
+    even if we will then delete these again in the next step.
+    (Called within `reset_db_with_backup_data`.)
+    """
+    # Add bogus trx values
+    record_data["credit_value"] = 0
+    record_data["trx_type"] = "Initial Load"
+
+    for x in record_data.to_dict("records"):
+        add_new_record(session, x)
+
+
+def _truncate_credit_trx_table(
+    engine: sqlalchemy.engine.Engine,
+    Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
+    table_class: sqlalchemy.ext.declarative.api.DeclarativeMeta = CreditTrx,
+):
+    """Workaround for truncating the credit_trx table to get rid of
+    the entries that where created during the data import.
+    (Called within `reset_db_with_backup_data`.)
+
+    Note: Just deleting the table content with table.delete() will
+    not reset the autoincrement of the primary key, that's why we
+    have to drop and re-create the table.
+    """
+    Base.metadata.drop_all(engine, tables=[table_class.__table__])
+    Base.metadata.create_all(engine, tables=[table_class.__table__])
+
+
+def _insert_trx_data_with_sqlalchemy_core(
+    engine: sqlalchemy.engine.Engine,
+    trx_data: pd.DataFrame,
+    table_class: sqlalchemy.ext.declarative.api.DeclarativeMeta = CreditTrx,
+):
+    """Copy the original trx_data into the empty credit_trx table
+    using the speedy 'bulk' insert function from sqlalchemy's core
+    functionality. (Called within `reset_db_with_backup_data`.)
+    """
+    trx_data.drop(["created_at", "updated_at"], axis=1, inplace=True)
+    engine.execute(
+        table_class.__table__.insert(), [x for x in trx_data.to_dict("records")]
+    )
