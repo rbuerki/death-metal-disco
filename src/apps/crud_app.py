@@ -3,7 +3,7 @@ import datetime as dt
 import streamlit as st
 
 from src import db_functions
-
+from src.apps import app_utils
 
 # TODO: does not work because session is created in different thread
 # _, session = db_connect.main()
@@ -31,10 +31,10 @@ def run(engine, Session):
             "(Artist) Country (one for each artist, separate with ';')"
         )
         title = st.text_input("Title")
-        genre = st.text_input("Genre")
+        genre = st.selectbox("Genre", app_utils.genre_list, 3)
         label = st.text_input("Label (separate multiple labels with ';')")
         year = st.number_input("Year", value=dt.date.today().year, format="%d")
-        record_format = st.text_input("Format")
+        record_format = st.selectbox("Format", app_utils.record_format_list, 6)
         vinyl_color = st.text_input("Vinyl Color")
         lim_edition = st.text_input("Lim Edition")
         number = st.text_input("Number")
@@ -296,4 +296,4 @@ def run(engine, Session):
                                 # TODO Output if artist, label, genre etc. has been created or updated
 
     # TODO, problably not ...
-    # session.close()
+    session.close()

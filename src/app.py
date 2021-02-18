@@ -2,7 +2,7 @@ import streamlit as st
 
 import src.db_connect as db_connect
 from src.multiapp import MultiApp
-from src.apps import stats_app, crud_app
+from src.apps import crud_app, recs_app, trx_app
 
 
 st.set_page_config(
@@ -33,8 +33,10 @@ st.write(Session)
 multiapp = MultiApp()
 
 # Add application pages here
-multiapp.add_app("STATS", stats_app.run)
-multiapp.add_app("CRUD", crud_app.run)
+multiapp.add_app("Records", recs_app.run)
+multiapp.add_app("Credit Trx", trx_app.run)
+multiapp.add_app("CRUD Operations", crud_app.run)
+
 
 # Run the main app # TODO add args for session ...
 multiapp.run_app(engine, Session)

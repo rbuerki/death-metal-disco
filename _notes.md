@@ -8,59 +8,40 @@
 
 PROD
 
-- [ ] children of the night is digitized
-- [ ] Clean-up record splits manually
+- ...
+
+DEV - FRONTEND
+
+- [ ] RECS: filter for records (in the sidetable, replace record of the day)
+- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
+
+- [ ] CRUD: Refactor completely
+- [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
 
 DEV - MODEL
 
-- [x] Import data into new db with new model with proper function
-- x] create proper initial data_ingestion function with df cleaning / assertions (at the moment a messy ipynb)
-- [x] Adapt Export function data dict to handle m-t-m artists and ratings (see TODOS)
-- [ ] re-export and re-import to make sure everything works properly
-
-- [ ] Update Frontend, assert len(artist) == len(artist_country)
-  
-``` python
-    string = "Witch Vomit; Coffins"
-    l = string.split("; ")
-    for a in l:
-        print(a.strip())
-```
+- [ ] BUG: On Updates the old relationship values are not overwritten in many to many relationships: possible solution: delete record first with cascade
 
 - [ ] implement relationships for ratings table:
   - ... in db_declaration
   - ... in db_functions add_ / udpate_ and export
-  - ... frontend crud
+  - ... frontend crud (add, update)
 
+- [ ] Within update: it should also be possible ro re-add inactive records! (and to pay for it in credits!)
 - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
+- [ ] db_functions: check the TODOs (actually you should refactor the whole thing)
 
-- [ ] Within update: if a rating is made, then I should write to the ratings table
-- [ ] Within update:  also it should be possible ro re-add inactive records! (and to pay for it in credits!)
-- [ ] On Updates the old relationship values are not overwritten in many to many relationships (-->Labels), see dev_stuff_2
-- [ ] ... they are also not deleted, because I have not set a delete (cascade) option in the db model, probably ...
+DEV - MISC
 
-DEV - FRONTEND
-
-- [ ] clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
-- [ ] install dropdowns for the db_functions frontend (?)
-- [ ] create random button (discogs has one ;-))
-
-- [ ] i have to implement arg parse and document the entry point with args
+- [ ] integrate export in reset function, true by default, can be deactivated
+- [ ] implement arg parse for main and document the entry point with args
 - [ ] create tests for db_functions (maybe rename), create package structure like blogpost medium
-- [ ] write some kind of back-up files, one with the records in orig format, the other with the trx
-
-- [ ] create data validations before running add_record function ...
-- [ ] install security check in create_anew()
-- [ ] all files: check the many TODOs
 
 ### Meta Things
 
 - [ ] Document the CreditTrx Table, which 4 TrxTypes are possible, the logic etc.
 - [ ] Document the ingestion approach, that bulk insertion (with sqlachemy core) does only work for copying data into tables, without taking care of the relationships (this is not exacty true, see realpyhton table declaration)
 - [ ] Document the connect.ipynb on github
-
-If I use pd.to_sql, then obviously I do not insert in an existing table (?) but create a new, overwrite the schema. I have to check that
-It would be better to bulk insert into the table instead of doing like I do now.
 
 ## To Do, OLD STUFF
 

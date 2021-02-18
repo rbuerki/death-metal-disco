@@ -1,5 +1,8 @@
+import plotly.graph_objects as go
 import streamlit as st
 
+from src import db_functions
+from src.apps import app_utils
 from src.db_declaration import (
     Artist,
     CreditTrx,
@@ -16,7 +19,7 @@ import src.db_connect as db_connect
 st.set_page_config(
     page_title="DiscoBase",
     page_icon="🦇",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="auto",
 )
 
@@ -36,3 +39,4 @@ engine, Session = get_engine_and_scoped_session()
 session = Session()
 
 #  CODE HERE
+
