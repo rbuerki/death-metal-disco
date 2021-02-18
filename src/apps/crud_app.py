@@ -5,9 +5,6 @@ import streamlit as st
 from src import db_functions
 from src.apps import app_utils
 
-# TODO: does not work because session is created in different thread
-# _, session = db_connect.main()
-
 
 trx_types = [
     "Purchase",

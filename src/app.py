@@ -1,7 +1,7 @@
 import streamlit as st
 
 import src.db_connect as db_connect
-from src.multiapp import MultiApp
+from src.MultiApp import MultiApp
 from src.apps import crud_app, recs_app, trx_app
 
 

@@ -17,6 +17,12 @@ DEV - FRONTEND
 
 - [ ] CRUD: Refactor completely
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
+  
+```python  
+  from src import SessionState
+  st_session_sate = SessionState.get(run_id=0)
+  st_session_state.run_id += 1
+```
 
 DEV - MODEL
 
