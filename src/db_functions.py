@@ -17,9 +17,6 @@ from src.db_declaration import (
 )
 
 
-# CONFIG_PATH = (Path.cwd().parent / "config.yaml").absolute()
-
-
 def fetch_a_record_from_the_shelf(
     session: sqlalchemy.orm.session.Session,
     artist: Union[str, Sequence[str]],
