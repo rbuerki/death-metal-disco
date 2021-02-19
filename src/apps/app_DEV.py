@@ -41,9 +41,43 @@ session = Session()
 
 # DataFrames
 rec_df_full, rec_df_small = app_utils.create_record_dataframes(session)
+top_sorted = rec_df_small.sort_values(
+    ["rating", "purchase_date"], ascending=False
+)
+top_sorted.index = range(1, len(top_sorted) + 1)
 
 
 #  CODE HERE
 
-st.write(rec_df_full.shape)
-st.write(rec_df_small.shape)
+n_top = 15
+st.write("")
+st.write(f"Top {n_top} Rated Records by Rating and Date:")
+st.table(top_sorted[["artist", "title", "rating"]].head(n_top))
+st.write("")
+
+n_top = 15
+st.write("")
+st.write(f"Records by Rating:")
+st.table(rec_df_small.groupby("rating", dropna=False)["title"].count())
+st.write("")
+
+
+st.write("")
+st.write("Records by Genre:")
+st.table(rec_df_small.groupby("genre")["title"].count())
+st.write("")
+
+# TODO - not correct because of the splits, have to take from db
+st.write("")
+st.write("Records by Label:")
+st.table(rec_df_small.groupby("label")["title"].count())
+st.write("")
+
+# TODO - not correct because of the split, have to take from db
+st.write("")
+st.write("Records by Artist):")
+st.table(rec_df_small.groupby("artist")["title"].count())
+st.write("")
+
+
+session.close()

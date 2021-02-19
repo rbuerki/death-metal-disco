@@ -12,7 +12,7 @@ PROD
 
 DEV - FRONTEND
 
-- [ ] STATS: Add a stats page with tables containing counts per attribute
+- [ ] STATS: get stats directy from DB
 
 - [ ] CRUD: Refactor completely
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
