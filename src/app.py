@@ -12,6 +12,9 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
+st.title("Death Metal Disco")
+# st.write("---")
+
 
 @st.cache(allow_output_mutation=True)
 def get_engine_and_scoped_session():
@@ -26,10 +29,6 @@ def get_engine_and_scoped_session():
 
 engine, Session = get_engine_and_scoped_session()
 
-
-st.title("Death Metal Disco")
-st.write(Session)
-
 multiapp = MultiApp()
 
 # Add application pages here
@@ -37,6 +36,5 @@ multiapp.add_app("Records", recs_app.run)
 multiapp.add_app("Credit Trx", trx_app.run)
 multiapp.add_app("CRUD Operations", crud_app.run)
 
-
-# Run the main app # TODO add args for session ...
+# Run the main app
 multiapp.run_app(engine, Session)

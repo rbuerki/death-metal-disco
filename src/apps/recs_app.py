@@ -1,47 +1,72 @@
 import streamlit as st
+
 from src import db_functions
 from src.apps import app_utils
-from src.db_declaration import (
-    Artist,
-    CreditTrx,
-    Genre,
-    Label,
-    Record,
-    RecordFormat,
-)
 
 
 def run(engine, Session):
 
     session = Session()
 
-    _, rec_df = db_functions._load_record_related_data_to_df(session)
-    for col in rec_df[["artist", "artist_country", "label"]]:
-        rec_df[col] = (
-            rec_df[col]
-            .astype(str)
-            .str.replace("[", "")
-            .str.replace("]", "")
-            .str.replace("'", "")
-        )
-    rec_df_active = rec_df[rec_df["is_active"] == 1]
-    rec_df_small = rec_df_active[app_utils.essential_columns_list].copy()
+    st.sidebar.write("---")
+    st.sidebar.write("Filter Records:")
+    artist = st.sidebar.text_input("Artist")
+    title = st.sidebar.text_input("Title")
+    label = st.sidebar.text_input("Label")
+    genre = st.sidebar.text_input("Genre")
+    year = st.sidebar.number_input("Release Year", 0)
+    rating = st.sidebar.slider("Rating", 0, 10, (0, 0), step=1)
 
-    # TODO styling, e.g. gray if not active
-    st.dataframe(rec_df.sort_values("purchase_date"), width=None, height=None)
+    rec_df_full, rec_df_small = app_utils.create_record_dataframes(session)
 
-    st.write("Record Of The Day:")
-    st.table(rec_df_small.sample(1).squeeze())
+    # Display the collection table
+    st.write("")
+    st.write("Record table (open fullscreen view):")
+    app_utils.display_collection_table(rec_df_full, width=None, height=100)
+    st.write("")
 
-    session.close()
-    # Session.remove()
+    # Filter the records according to sidetable
+    if artist:
+        rec_df_small = rec_df_small[
+            rec_df_small["artist"].str.lower().str.contains(artist.lower())
+        ]
+    if title:
+        rec_df_small = rec_df_small[
+            rec_df_small["title"].str.lower() == title.lower()
+        ]
+    if label:
+        rec_df_small = rec_df_small[
+            rec_df_small["label"].str.lower().str.contains(label.lower())
+        ]
+    if genre:
+        rec_df_small = rec_df_small[
+            rec_df_small["genre"].str.lower() == genre.lower()
+        ]
+    if year != 0:
+        rec_df_small = rec_df_small[rec_df_small["year"] == year]
+    if rating[1] != 0:
+        rec_df_small = rec_df_small[
+            (rec_df_small["rating"] >= rating[0])
+            & (rec_df_small["rating"] <= rating[1])
+        ]
 
-    # result = (
-    #     session.query(CreditTrx.credit_saldo)
-    #     .order_by(CreditTrx.credit_trx_id.desc())
-    #     .first()[0]
-    # )
-    # st.write(f"Actual Credit Saldo: {result}")
+    # Display either filtered records or record-of-the-day
+    if (
+        artist != ""
+        or title != ""
+        or label != ""
+        or genre != ""
+        or year != 0
+        or rating[1] != 0
+    ):
+        rec_df_small = rec_df_small.reset_index(drop=True)
+        st.write("Filtered Records:")
+        for _, row in rec_df_small.iterrows():
+            app_utils.display_a_record_table(row.squeeze())
 
-    # _, trx_df = db_functions._load_credit_trx_table_to_df(engine)
-    # st.dataframe(trx_df.tail(6), width=None, height=None)
+    else:
+        st.write("Record Of The Day:")
+        record_of_the_day = rec_df_small.sample(1).squeeze()
+        app_utils.display_a_record_table(record_of_the_day)
+
+        session.close()

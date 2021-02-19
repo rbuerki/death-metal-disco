@@ -12,8 +12,7 @@ PROD
 
 DEV - FRONTEND
 
-- [ ] RECS: filter for records (in the sidetable, replace record of the day)
-- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
+- [ ] STATS: Add a stats page with tables containing counts per attribute
 
 - [ ] CRUD: Refactor completely
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
@@ -23,6 +22,8 @@ DEV - FRONTEND
   st_session_sate = SessionState.get(run_id=0)
   st_session_state.run_id += 1
 ```
+
+- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
 
 DEV - MODEL
 
