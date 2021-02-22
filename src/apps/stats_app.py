@@ -1,71 +1,101 @@
+import pandas as pd
 import streamlit as st
+from sqlalchemy import func
 
 from src.apps import app_utils
+from src.db_declaration import (
+    Artist,
+    ArtistRecordLink,
+    Label,
+    LabelRecordLink,
+    Record,
+)
 
 
 def run(engine, Session):
 
     session = Session()
 
-    st.sidebar.write("---")
-    st.sidebar.write("Filter Records:")
-    artist = st.sidebar.text_input("Artist")
-    title = st.sidebar.text_input("Title")
-    label = st.sidebar.text_input("Label")
-    genre = st.sidebar.text_input("Genre")
-    year = st.sidebar.number_input("Release Year", 0)
-    rating = st.sidebar.slider("Rating", 0, 10, (0, 0), step=1)
+    # DataFrames
+    _, rec_df_small = app_utils.create_record_dataframes(session)
+    top_sorted = rec_df_small.sort_values(
+        ["rating", "purchase_date"], ascending=False
+    )
+    top_sorted.index = range(1, len(top_sorted) + 1)
 
-    rec_df_full, rec_df_small = app_utils.create_record_dataframes(session)
+    # TODO this sucks somehow
+    # q = session.query(Record.rating, func.count(Record.title)).group_by(
+    #     Record.rating
+    # )
 
-    # Display the collection table
+    # df = pd.read_sql(q.statement, q.session.bind)
+    # df.columns = ["rating", "record count"]
+    # df = df.replace("None", np.nan)
+    # df.set_index("rating", drop=True, inplace=True)
+    # st.table(df.sort_values("rating", ascending=False))
+
+    # st.write(rec_df_full[rec_df_full["rating"].notnull()])
+
+    n_recs = 0  # session.query(
+    #     func.count((Record.is_active)).filter(Record.is_active == 1)[0][0]
+    # )
     st.write("")
-    st.write("Record table (open fullscreen view):")
-    app_utils.display_collection_table(rec_df_full, width=None, height=100)
+    st.write(f"Total Active Records in Collection: {n_recs}")
     st.write("")
 
-    # Filter the records according to sidetable
-    if artist:
-        rec_df_small = rec_df_small[
-            rec_df_small["artist"].str.lower().str.contains(artist.lower())
-        ]
-    if title:
-        rec_df_small = rec_df_small[
-            rec_df_small["title"].str.lower() == title.lower()
-        ]
-    if label:
-        rec_df_small = rec_df_small[
-            rec_df_small["label"].str.lower().str.contains(label.lower())
-        ]
-    if genre:
-        rec_df_small = rec_df_small[
-            rec_df_small["genre"].str.lower() == genre.lower()
-        ]
-    if year != 0:
-        rec_df_small = rec_df_small[rec_df_small["year"] == year]
-    if rating[1] != 0:
-        rec_df_small = rec_df_small[
-            (rec_df_small["rating"] >= rating[0])
-            & (rec_df_small["rating"] <= rating[1])
-        ]
+    n_top = 15
+    st.write("")
+    st.write(f"Top {n_top} Rated Records by Rating and Date:")
+    st.table(top_sorted[["artist", "title", "rating"]].head(n_top))
+    st.write("")
 
-    # Display either filtered records or record-of-the-day
-    if (
-        artist != ""
-        or title != ""
-        or label != ""
-        or genre != ""
-        or year != 0
-        or rating[1] != 0
-    ):
-        rec_df_small = rec_df_small.reset_index(drop=True)
-        st.write("Filtered Records:")
-        for _, row in rec_df_small.iterrows():
-            app_utils.display_a_record_table(row.squeeze())
+    st.write("")
+    st.write("Records by Rating:")
+    st.table(rec_df_small.groupby("rating", dropna=False)["title"].count())
+    st.write("")
 
-    else:
-        st.write("Record Of The Day:")
-        record_of_the_day = rec_df_small.sample(1).squeeze()
-        app_utils.display_a_record_table(record_of_the_day)
+    st.write("")
+    st.write("Records by Genre:")
+    st.table(rec_df_small.groupby("genre")["title"].count())
+    st.write("")
 
-        session.close()
+    st.write("")
+    st.write("Records by Format:")
+    st.table(rec_df_small.groupby("record_format")["title"].count())
+    st.write("")
+
+    # # TODO - not correct because of the splits, have to take from db
+    q_label = (
+        session.query(Label.label_name, func.count(LabelRecordLink.record_id))
+        .join(LabelRecordLink, LabelRecordLink.label_id == Label.label_id)
+        .join(Record, LabelRecordLink.record_id == Record.record_id)
+        .filter(Record.is_active == 1)
+        .group_by(Label.label_name)
+    )
+
+    st.write("")
+    st.write("Records by Label:")
+    df = pd.read_sql(q_label.statement, q_label.session.bind)
+    df.set_index("label_name", drop=True, inplace=True)
+    st.table(df)
+    st.write("")
+
+    # # TODO - not correct because of the split, have to take from db
+    q_artist = (
+        session.query(
+            Artist.artist_name, func.count(ArtistRecordLink.artist_id)
+        )
+        .join(ArtistRecordLink, ArtistRecordLink.artist_id == Artist.artist_id)
+        .join(Record, ArtistRecordLink.record_id == Record.record_id)
+        .filter(Record.is_active == 1)
+        .group_by(Artist.artist_name)
+    )
+
+    st.write("")
+    st.write("Records by Artist:")
+    df = pd.read_sql(q_artist.statement, q_artist.session.bind)
+    df.set_index("artist_name", drop=True, inplace=True)
+    st.table(df)
+    st.write("")
+
+    session.close()

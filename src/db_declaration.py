@@ -37,31 +37,19 @@ class Record(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     # Many-to-one relationships
-    genre = relationship(
-        "Genre", back_populates="records", cascade="all, delete"
-    )
-    record_format = relationship(
-        "RecordFormat", back_populates="records", cascade="all, delete"
-    )
+    genre = relationship("Genre", back_populates="records")
+    record_format = relationship("RecordFormat", back_populates="records")
     # One-to-many relationships
     credit_trx = relationship(
-        "CreditTrx", back_populates="record", cascade="all, delete-orphan"
+        "CreditTrx", back_populates="record", cascade="delete"
     )
-    ratings = relationship(
-        "Rating", back_populates="record", cascade="all, delete-orphan"
-    )
+    ratings = relationship("Rating", back_populates="record", cascade="delete")
     # Many-to-many relationships
     artists = relationship(
-        "Artist",
-        secondary="artist_record_link",
-        back_populates="records",
-        cascade="all, delete",
+        "Artist", secondary="artist_record_link", back_populates="records",
     )
     labels = relationship(
-        "Label",
-        secondary="label_record_link",
-        back_populates="records",
-        cascade="all, delete",
+        "Label", secondary="label_record_link", back_populates="records",
     )
 
     def __repr__(self):
@@ -181,7 +169,7 @@ class CreditTrx(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    # One-to-many relationships
+    # Many-to-one relationships
     record = relationship("Record", back_populates="credit_trx")
 
     def __repr__(self):

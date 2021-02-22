@@ -1,15 +1,8 @@
 import plotly.graph_objects as go
 import streamlit as st
 
-from src import db_functions
-from src.db_declaration import (
-    Artist,
-    CreditTrx,
-    Genre,
-    Label,
-    Record,
-    RecordFormat,
-)
+from src.apps import app_utils
+from src.db_declaration import CreditTrx
 
 
 def run(engine, Session):
@@ -30,9 +23,16 @@ def run(engine, Session):
             delta={"reference": 0},
         )
     )
+    fig.update_layout(
+        autosize=False,
+        width=300,
+        height=300,
+        margin=dict(l=10, r=10, b=10, t=10, pad=4),
+    )
+
     st.plotly_chart(fig)
 
-    _, trx_df = db_functions._load_credit_trx_table_to_df(engine)
-    st.dataframe(trx_df.tail(6), width=None, height=None)
+    trx_df = app_utils.create_trx_dataframe(session)
+    st.dataframe(trx_df.tail(10), width=None, height=None)
 
     session.close()

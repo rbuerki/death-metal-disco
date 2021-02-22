@@ -5,6 +5,8 @@ import sqlalchemy
 import streamlit as st
 
 from src import db_functions
+from src.db_declaration import CreditTrx
+
 
 genre_list = [
     "Black Metal",
@@ -22,11 +24,10 @@ record_format_list = [
     '10"',
     '12"',
     "2LP",
-    "2xLP",
     '7"',
-    '7" Pic',
     "LP",
     "MLP",
+    'Pic-7"',
     "Pic-LP",
     "Tape",
 ]
@@ -56,7 +57,8 @@ def create_record_dataframes(
     """Return two dataframes with all the record related data. The
     second is a subset of the first, with active records and selected
     columns only. These dataframes are used for display in the
-    `recs_app`.
+    `recs_app`. The data loading uses the `_load_record_related_data`
+    function that was originally designed for data export.
     """
     _, rec_df_full = db_functions._load_record_related_data_to_df(
         session, include_id_column=True
@@ -71,9 +73,46 @@ def create_record_dataframes(
         )
     rec_df_full.sort_values("purchase_date", inplace=True)
     rec_df_active = rec_df_full[rec_df_full["is_active"] == 1]
-    rec_df_small = rec_df_active[small_cols].copy()
+    rec_df_small = rec_df_active.set_index("record_id", drop=True)
+    rec_df_small = rec_df_small[small_cols].copy()
 
     return rec_df_full, rec_df_small
+
+
+def create_trx_dataframe(
+    session: sqlalchemy.orm.session.Session,
+) -> pd.DataFrame:
+    """Return a dataframe containing a customized view of the
+    credit_trx table, including the record titles for better
+    orientation. Used in the trx_app.
+    """
+    result_list = (
+        session.query(CreditTrx).order_by(CreditTrx.credit_trx_id).all()
+    )
+    dict_list = []
+
+    for result in result_list:
+        try:
+            title = result.record.title
+        except:
+            title = ""
+
+        record_data_dict = {
+            "credit_trx_id": result.credit_trx_id,
+            "credit_trx_date": result.credit_trx_date,
+            "credit_trx_type": result.credit_trx_type,
+            "credit_value": result.credit_value,
+            "credit_saldo": result.credit_saldo,
+            "record_id": result.record_id,
+            "record_title": title,
+            "created_at": result.created_at,
+        }
+        dict_list.append(record_data_dict)
+
+    trx_df = pd.DataFrame(dict_list, columns=dict_list[0].keys())
+    trx_df["credit_trx_date"] = trx_df["credit_trx_date"].astype("datetime64")
+
+    return trx_df
 
 
 def display_collection_table(df: pd.DataFrame, **kwargs):
@@ -92,7 +131,7 @@ def display_collection_table(df: pd.DataFrame, **kwargs):
     )
 
 
-def display_a_record_table(series: pd.Series):
+def display_a_pretty_record_table(series: pd.Series):
     """Apply some styling and display a static table
     for a single record.
     """
