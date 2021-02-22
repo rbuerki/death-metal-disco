@@ -28,6 +28,7 @@ record_format_list = [
     "LP",
     "MLP",
     "Pic-LP",
+    "Tape",
 ]
 
 essential_columns_list = [
@@ -57,7 +58,9 @@ def create_record_dataframes(
     columns only. These dataframes are used for display in the
     `recs_app`.
     """
-    _, rec_df_full = db_functions._load_record_related_data_to_df(session)
+    _, rec_df_full = db_functions._load_record_related_data_to_df(
+        session, include_id_column=True
+    )
     for col in rec_df_full[["artist", "artist_country", "label"]]:
         rec_df_full[col] = (
             rec_df_full[col]

@@ -425,11 +425,15 @@ def export_db_data_to_2_parquet_files(
 
 
 def _load_record_related_data_to_df(
-    session: sqlalchemy.orm.session.Session,
+    session: sqlalchemy.orm.session.Session, include_id_column: bool = False
 ) -> Tuple[str, pd.DataFrame]:
     """Save all record-related data to Pandas Dataframe and return a
     tuple with a dataframe name string and the dataframe. Called
-    within `export_db_data_to_2_parquet_files`.
+    within `export_db_data_to_2_parquet_files`, but also used for
+    displaying a full collection dataframe in the the frontend's
+    `recs_app`. Note: For the first usecase the `include_id_column` is
+    set to False (by default) because the id will be defined anew
+    during the reset of the database.
     """
     result_list = session.query(Record).order_by(Record.record_id).all()
     dict_list = []
@@ -459,7 +463,8 @@ def _load_record_related_data_to_df(
         dict_list.append(record_data_dict)
 
     records_df = pd.DataFrame(dict_list, columns=dict_list[0].keys())
-    records_df.set_index("record_id", drop=True, inplace=True)
+    if include_id_column is False:
+        records_df.set_index("record_id", drop=True, inplace=True)
     df_name = "record_data"
 
     records_df = records_df.replace("None", np.nan)
