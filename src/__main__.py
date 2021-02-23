@@ -17,19 +17,19 @@ def main():
     # Always check if Addition is up
     db_functions.add_regular_credits(session)
 
-    # Export data back-up
-    # db_functions.export_db_data_to_2_parquet_files(
-    #     session, engine, CONFIG_PATH
-    # )
+    # # Export data back-up
+    db_functions.export_db_data_to_2_parquet_files(
+        session, engine, CONFIG_PATH,
+    )
 
-    # Reset DB and Import data back-up
+    # # Reset DB and Import data back-up
     # db_functions.reset_db_with_backup_data(
     #     engine,
     #     session,
     #     Base,
     #     CONFIG_PATH,
-    #     "record_data_2021-02-17-09-02-53.parquet",
-    #     "trx_data_2021-02-17-09-02-53.parquet",
+    #     "record_data_2021-02-23-13-46-26.parquet",
+    #     "trx_data_2021-02-23-13-46-27.parquet",
     # )
 
     session.close()

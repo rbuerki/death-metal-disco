@@ -41,9 +41,11 @@ class Record(Base):
     record_format = relationship("RecordFormat", back_populates="records")
     # One-to-many relationships
     credit_trx = relationship(
-        "CreditTrx", back_populates="record", cascade="delete"
+        "CreditTrx", back_populates="record", cascade="all, delete-orphan"
     )
-    ratings = relationship("Rating", back_populates="record", cascade="delete")
+    ratings = relationship(
+        "Rating", back_populates="record", cascade="all, delete-orphan"
+    )
     # Many-to-many relationships
     artists = relationship(
         "Artist", secondary="artist_record_link", back_populates="records",
@@ -63,7 +65,7 @@ class Record(Base):
 class Artist(Base):
     __tablename__ = "artists"
     artist_id = Column(Integer, primary_key=True)
-    artist_name = Column(String, nullable=False)
+    artist_name = Column(String, nullable=False, unique=True)
     artist_country = Column(String)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
@@ -89,7 +91,7 @@ class Artist(Base):
 class Genre(Base):
     __tablename__ = "genres"
     genre_id = Column(Integer, primary_key=True)
-    genre_name = Column(String, nullable=False)
+    genre_name = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
@@ -113,7 +115,7 @@ class Genre(Base):
 class Label(Base):
     __tablename__ = "labels"
     label_id = Column(Integer, primary_key=True)
-    label_name = Column(String, nullable=False)
+    label_name = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
@@ -138,7 +140,7 @@ class Label(Base):
 class RecordFormat(Base):
     __tablename__ = "formats"
     format_id = Column(Integer, primary_key=True)
-    format_name = Column(String, nullable=False)
+    format_name = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
