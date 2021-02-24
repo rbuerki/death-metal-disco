@@ -36,11 +36,9 @@ def run(engine, Session):
 
     # st.write(rec_df_full[rec_df_full["rating"].notnull()])
 
-    n_recs = 0  # session.query(
-    #     func.count((Record.is_active)).filter(Record.is_active == 1)[0][0]
-    # )
+    n_active = session.query(Record).filter(Record.is_active == 1).count()
     st.write("")
-    st.write(f"Total Active Records in Collection: {n_recs}")
+    st.write(f"Total Active Records in Collection: {n_active}")
     st.write("")
 
     n_top = 15
@@ -51,17 +49,29 @@ def run(engine, Session):
 
     st.write("")
     st.write("Records by Rating:")
-    st.table(rec_df_small.groupby("rating", dropna=False)["title"].count())
+    st.table(
+        rec_df_small.groupby("rating", dropna=False)["title"]
+        .count()
+        .sort_index(ascending=False)
+    )
     st.write("")
 
     st.write("")
     st.write("Records by Genre:")
-    st.table(rec_df_small.groupby("genre")["title"].count())
+    st.table(
+        rec_df_small.groupby("genre")["title"]
+        .count()
+        .sort_values(ascending=False)
+    )
     st.write("")
 
     st.write("")
     st.write("Records by Format:")
-    st.table(rec_df_small.groupby("record_format")["title"].count())
+    st.table(
+        rec_df_small.groupby("record_format")["title"]
+        .count()
+        .sort_values(ascending=False)
+    )
     st.write("")
 
     # # TODO - not correct because of the splits, have to take from db

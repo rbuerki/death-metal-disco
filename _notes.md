@@ -10,11 +10,15 @@ PROD
 
 - ...
 
-DEV - FRONTEND
+DEV - PRIO 1
 
-- [ ] CRUD: check None, nan etc. --> For label it's "NA" str, cannot be None, for float it cannot be None, but np.nan, ...
-- [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
+- [x] ATTENTION - IF I DELETE RECORDS this most probably will shatter the relations between recs and trx on the next reset! (already happened once)
+- [x] CRUD: check None, nan etc. --> For label it's "NA" str, cannot be None, for float it cannot be None, but np.nan, ...
+
 - [ ] CRUD UPDATE BUG (Back-end): I append the values, I do not overwrite in many-to-many relationships
+- [ ] db_functions: check the TODOs (actually you should refactor the whole thing)
+
+- [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
 
   ```python  
@@ -23,12 +27,12 @@ DEV - FRONTEND
     st_session_state.run_id += 1
   ```
 
-Prio 2:
-- [x] STATS: get stats directy from DB (halfway done, still some issues there ...)
-- [ ] CRUD UPDATE / REMOVAL: filter by ID alternatively
 - [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
   
-DEV - MODEL / DB_FUNCTIONS
+DEV - PRIO 2
+
+- [x] STATS: get stats directy from DB (halfway done, still some issues there ...)
+- [ ] CRUD UPDATE / REMOVAL: filter by ID alternatively
 
 - [ ] implement relationships for ratings table:
   - ... in db_declaration
@@ -36,10 +40,9 @@ DEV - MODEL / DB_FUNCTIONS
   - ... frontend crud (add, update)
 
 - [ ] Think about that: When I set a record to inactive, the artist / label / genre etc. are not touched, set to inactive.
-- [ ] db_functions: check the TODOs (actually you should refactor the whole thing)
 - [ ] Within update: it should also be possible ro re-add inactive records (and to pay for it in credits)
 
-DEV - MISC
+DEV - MAYBE
 
 - [ ] integrate export in reset function, true by default, can be deactivated
 - [ ] implement arg parse for main and document the entry point with args
