@@ -23,7 +23,7 @@ genre_list = [
 record_format_list = [
     '10"',
     '12"',
-    "2LP",
+    "2xLP",
     '7"',
     "LP",
     "MLP",
@@ -94,7 +94,7 @@ def create_trx_dataframe(
     for result in result_list:
         try:
             title = result.record.title
-        except:
+        except TypeError:
             title = ""
 
         record_data_dict = {

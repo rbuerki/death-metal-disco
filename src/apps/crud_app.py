@@ -63,7 +63,7 @@ def run(engine, Session):
                             st.write("Record updated.")
                             # TODO Output if artist, label etc. has been created / updated
 
-    # Removal (Inactivation) Workflow - no real deletion!
+    # Removal (Inactivation) Workflow - no real deletion from DB!
     elif trx_type == "Remove":
         artist, title = display_record_select_form(session)
         if artist != "-" and title != "-":
