@@ -18,9 +18,9 @@ def main():
     db_functions.add_regular_credits(session)
 
     # # Export data back-up
-    db_functions.export_db_data_to_2_parquet_files(
-        session, engine, CONFIG_PATH,
-    )
+    # db_functions.export_db_data_to_2_parquet_files(
+    #     session, engine, CONFIG_PATH,
+    # )
 
     # # Reset DB and Import data back-up
     # db_functions.reset_db_with_backup_data(
@@ -28,8 +28,8 @@ def main():
     #     session,
     #     Base,
     #     CONFIG_PATH,
-    #     "record_data_2021-02-23-13-46-26.parquet",
-    #     "trx_data_2021-02-23-13-46-27.parquet",
+    #     "record_data_2021-02-24-15-22-40.parquet",
+    #     "trx_data_2021-02-24-15-22-41.parquet",
     # )
 
     session.close()

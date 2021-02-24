@@ -222,15 +222,17 @@ def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict):
 
     # Check if the label already exists or has to be created
     label_list = []
-    for l in r_label:
+    for lab in r_label:
         label = (
-            session.query(Label).filter(Label.label_name.ilike(l)).one_or_none()
+            session.query(Label)
+            .filter(Label.label_name.ilike(lab))
+            .one_or_none()
         )
         if label is None:
-            label = Label(label_name=l)
+            label = Label(label_name=lab)
             session.add(label)
         else:
-            label.label_name = l
+            label.label_name = lab
 
         label_list.append(label)
 
@@ -316,7 +318,7 @@ def set_record_to_inactive(
         return
 
     if record is not None:
-        if record.is_active == 0:
+        if record.is_active == False:
             print(
                 f"Status of record '{r_title}' by {r_artist} is "
                 f"already 0, please check."
@@ -324,7 +326,7 @@ def set_record_to_inactive(
             return
 
         else:
-            record.is_active = 0
+            record.is_active = False
             print("Record set to inactive.")
 
             # Create a Removal trx
@@ -425,15 +427,15 @@ def export_db_data_to_2_parquet_files(
 
 
 def _load_record_related_data_to_df(
-    session: sqlalchemy.orm.session.Session, include_id_column: bool = False
+    session: sqlalchemy.orm.session.Session, include_id_column: bool = True
 ) -> Tuple[str, pd.DataFrame]:
     """Save all record-related data to Pandas Dataframe and return a
     tuple with a dataframe name string and the dataframe. Called
     within `export_db_data_to_2_parquet_files`, but also used for
     displaying a full collection dataframe in the the frontend's
-    `recs_app`. Note: For the first usecase the `include_id_column` is
-    set to False (by default) because the id will be defined anew
-    during the reset of the database.
+    `recs_app`. Note: If `include_id_column` is actively set to
+    False the id will be (re-)defined during the reset of the DB.
+    (ATTENTION - dangerous, might break relations to trx data.)
     """
     result_list = session.query(Record).order_by(Record.record_id).all()
     dict_list = []
@@ -486,14 +488,18 @@ def _load_record_related_data_to_df(
 
 
 def _load_credit_trx_table_to_df(
-    engine: sqlalchemy.engine.Engine,
+    engine: sqlalchemy.engine.Engine, include_id_column: bool = True
 ) -> Tuple[str, pd.DataFrame]:
     """Copy credit_trx_table to Pandas Dataframe and return a tuple
     with a dataframe name string and the dataframe. Called within
-    `export_db_data_to_2_parquet_files`.
+    `export_db_data_to_2_parquet_files`. Note: If `include_id_column`
+    is actively set to False the id will be (re-)defined during the
+    reset of the DB. (ATTENTION - dangerous, might break relations to
+    record data.)
     """
     credit_trx_df = pd.read_sql("credit_trx", engine)
-    credit_trx_df.set_index("credit_trx_id", drop=True, inplace=True)
+    if include_id_column is False:
+        credit_trx_df.set_index("credit_trx_id", drop=True, inplace=True)
     df_name = "trx_data"
 
     if (
@@ -520,6 +526,7 @@ def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
     target_folder = Path.cwd() / rel_path
     Path.mkdir(target_folder, parents=True, exist_ok=True)
     full_path = target_folder / f"{df_name}_{datetime_stamp}.parquet"
+    print(f"Saving data to: {full_path}")
 
     df.to_parquet(full_path)
 
