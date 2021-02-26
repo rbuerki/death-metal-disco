@@ -8,17 +8,17 @@
 
 PROD
 
-- ...
+- [ ] ...
 
 DEV - PRIO 1
 
-- [x] ATTENTION - IF I DELETE RECORDS this most probably will shatter the relations between recs and trx on the next reset! (already happened once)
-- [x] CRUD: check None, nan etc. --> For label it's "NA" str, cannot be None, for float it cannot be None, but np.nan, ...
-
-- [ ] CRUD UPDATE BUG (Back-end): I append the values, I do not overwrite in many-to-many relationships
-- [ ] db_functions: check the TODOs (actually you should refactor the whole thing)
-
 - [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
+- [ ] LAUNCH BAT PLEASE
+- [ ] RATINGS app
+
+DEV - PROBLEMS NOT SOLVED
+
+- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
 
   ```python  
@@ -27,12 +27,9 @@ DEV - PRIO 1
     st_session_state.run_id += 1
   ```
 
-- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
-  
 DEV - PRIO 2
 
 - [x] STATS: get stats directy from DB (halfway done, still some issues there ...)
-- [ ] CRUD UPDATE / REMOVAL: filter by ID alternatively
 
 - [ ] implement relationships for ratings table:
   - ... in db_declaration

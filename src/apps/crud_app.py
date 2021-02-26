@@ -38,7 +38,7 @@ def run(engine, Session):
                 if commit and isinstance(record_data, dict):
                     db_functions.add_new_record(session, record_data)
                     st.write("Record inserted.")
-                    # TODO Output if artist, label etc. has been created / updated
+                    # TODO Output if artist, label etc. has been created/updated
 
     # Update Workflow
     elif trx_type == "Update":
@@ -61,7 +61,7 @@ def run(engine, Session):
                         if commit and isinstance(record_data, dict):
                             db_functions.update_record(session, record_data)
                             st.write("Record updated.")
-                            # TODO Output if artist, label etc. has been created / updated
+                            # TODO Output if artist, label etc. has been created/updated
 
     # Removal (Inactivation) Workflow - no real deletion from DB!
     elif trx_type == "Remove":

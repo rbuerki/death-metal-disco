@@ -1,6 +1,7 @@
 import streamlit as st
 
-from src.apps import app_utils
+# from src import db_functions  # TODO Update problems, see below
+from src.apps import app_utils  # , crud_app  # TODO Update problems, see below
 
 
 def run(engine, Session):
@@ -73,5 +74,30 @@ def run(engine, Session):
         st.write("Record Of The Day:")
         record_of_the_day = rec_df_small.sample(1).squeeze()
         app_utils.display_a_pretty_record_table(record_of_the_day)
+
+        # # TODO Goal: allow update of rotd, Problem: reloads new record at every input
+        # update_record = st.checkbox("Update")
+        # if update_record:
+        #     artist = record_of_the_day["artist"]
+        #     title = record_of_the_day["title"]
+        #     trx_type = "Update"
+        #     record = db_functions.fetch_a_record_from_the_shelf(
+        #         session, artist, title
+        #     )
+        #     # NOTE: The next block is copied from CRUD App's Update workflow
+        #     record_data = crud_app.display_record_update_form_and_return_data(
+        #         record, trx_type
+        #     )
+        #     update: bool = st.checkbox("Update Record")
+        #     if update:
+        #         record_data = crud_app.prepare_record_data_for_DB_insert(
+        #             record_data
+        #         )
+        #         st.write(record_data)
+        #         if record_data:
+        #             commit: bool = st.checkbox("Commit Transaction.")
+        #             if commit and isinstance(record_data, dict):
+        #                 db_functions.update_record(session, record_data)
+        #                 st.write("Record updated.")
 
         session.close()
