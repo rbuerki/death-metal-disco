@@ -13,13 +13,17 @@ PROD
 DEV - PRIO 1
 
 - [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
+- [ ] CRUD: Artist Country was taken from previous record(s), ATTENTION if I don't deaktivate the update / commit checkboxes it overwrites values of actual record automatically!
+- [ ] CRUD UPDATE / PURCHASE: change flow, commit directly, show result queried from db. maybe i can do without checkbox then!
 - [ ] LAUNCH BAT PLEASE
 - [ ] RATINGS app
+- [ ] STATS: % of total per Rating
 
 DEV - PROBLEMS NOT SOLVED
 
 - [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
+- [ ] CRUD: Purchase - fill in artist country if artist exists
 
   ```python  
     from src import SessionState

@@ -81,6 +81,8 @@ def check_if_artist_exists_or_create(
             .filter(Artist.artist_name.ilike(a))
             .one_or_none()
         )
+        if artist:
+            artist.artist_country = r_artist_country[n]
         if artist is None:
             artist = Artist(artist_name=a, artist_country=r_artist_country[n],)
             session.add(artist)

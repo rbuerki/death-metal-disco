@@ -9,8 +9,8 @@ from src.db_declaration import Artist, Record
 
 
 trx_types = [
-    "Purchase",
     "Update",
+    "Purchase",
     "Remove",
 ]
 
@@ -135,8 +135,8 @@ def display_record_purchase_form_return_data(trx_type: str) -> Dict:
 
     record_data = {
         "trx_type": trx_type,
-        "artist": artist if artist != "" else None,
-        "artist_country": artist_country if artist_country != "" else None,
+        "artist": artist if artist != "" else "NA",
+        "artist_country": artist_country if artist_country != "" else "NA",
         "title": title if title != "" else None,
         "genre": genre,
         "label": label if label != "" else "NA",
@@ -213,6 +213,12 @@ def display_record_update_form_and_return_data(record, trx_type: str) -> Dict:
     actual values stored in the DB, which can be overwritten. Return a
     dictionary with the data updated by the user.
     """
+    # # TODO bug tracking - can be deleted if solved
+    # x = st.write(
+    #     "; ".join([artist.artist_country for artist in record.artists])
+    # )
+    # st.write(x)
+
     artist = st.text_input(
         "Artist",
         value="; ".join([artist.artist_name for artist in record.artists]),
@@ -248,8 +254,8 @@ def display_record_update_form_and_return_data(record, trx_type: str) -> Dict:
 
     record_data = {
         "trx_type": trx_type,
-        "artist": artist if artist != "" else None,
-        "artist_country": artist_country if artist_country != "" else None,
+        "artist": artist if artist != "" else "NA",
+        "artist_country": artist_country if artist_country != "" else "NA",
         "title": title if title != "" else None,
         "genre": genre,
         "label": label if label != "" else "NA",
