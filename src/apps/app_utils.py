@@ -94,7 +94,7 @@ def create_trx_dataframe(
     for result in result_list:
         try:
             title = result.record.title
-        except TypeError:
+        except AttributeError:
             title = ""
 
         record_data_dict = {

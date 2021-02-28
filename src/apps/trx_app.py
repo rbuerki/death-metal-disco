@@ -1,6 +1,7 @@
 import plotly.graph_objects as go
 import streamlit as st
 
+from src import db_functions
 from src.apps import app_utils
 from src.db_declaration import CreditTrx
 
@@ -8,6 +9,9 @@ from src.db_declaration import CreditTrx
 def run(engine, Session):
 
     session = Session()
+
+    # Check for regular Addition
+    db_functions.add_regular_credits(session)
 
     result = (
         session.query(CreditTrx.credit_saldo)
