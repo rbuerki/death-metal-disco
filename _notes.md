@@ -13,11 +13,9 @@ PROD
 DEV - PRIO 1
 
 - [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
-- [ ] CRUD: Artist Country was taken from previous record(s), ATTENTION if I don't deaktivate the update / commit checkboxes it overwrites values of actual record automatically!
-- [ ] CRUD UPDATE / PURCHASE: change flow, commit directly, show result queried from db. maybe i can do without checkbox then!
-- [ ] LAUNCH BAT PLEASE
-- [ ] RATINGS app
+- [ ] CRUD: Artist Country often (always?) taken from previous record (updates) / sometimes Label (if the same artist, at least, see Tomb Mold)
 - [ ] STATS: % of total per Rating
+- [ ] RATINGS app
 
 DEV - PROBLEMS NOT SOLVED
 

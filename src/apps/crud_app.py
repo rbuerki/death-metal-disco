@@ -1,6 +1,7 @@
 import datetime as dt
 from typing import Dict
 
+import sqlalchemy
 import streamlit as st
 
 from src import db_functions
@@ -29,16 +30,17 @@ def run(engine, Session):
     # Purchase Workflow
     if trx_type == "Purchase":
         record_data = display_record_purchase_form_return_data(trx_type)
-        insert: bool = st.checkbox("Insert Record")
-        if insert:
+        add: bool = st.button("Add Record")
+        if add and isinstance(record_data, dict):
             record_data = prepare_record_data_for_DB_insert(record_data)
-            st.write(record_data)
-            if record_data:
-                commit = st.button("Commit Transaction")
-                if commit and isinstance(record_data, dict):
-                    db_functions.add_new_record(session, record_data)
-                    st.write("Record inserted.")
-                    # TODO Output if artist, label etc. has been created/updated
+            db_functions.add_new_record(session, record_data)
+            st.write("Record inserted.")
+            # TODO query the record_data from the DB, please
+            record_data_from_DB = get_record_data_from_queried_record(
+                session, record_data
+            )
+            st.write(record_data_from_DB)
+            # TODO Output if artist, label etc. has been created/updated
 
     # Update Workflow
     elif trx_type == "Update":
@@ -52,16 +54,17 @@ def run(engine, Session):
                 record_data = display_record_update_form_and_return_data(
                     record, trx_type
                 )
-                update: bool = st.checkbox("Update Record")
-                if update:
+                update: bool = st.button("Update Record")
+                if update and isinstance(record_data, dict):
                     record_data = prepare_record_data_for_DB_insert(record_data)
-                    st.write(record_data)
-                    if record_data:
-                        commit: bool = st.checkbox("Commit Transaction.")
-                        if commit and isinstance(record_data, dict):
-                            db_functions.update_record(session, record_data)
-                            st.write("Record updated.")
-                            # TODO Output if artist, label etc. has been created/updated
+                    db_functions.update_record(session, record_data)
+                    st.write("Record updated.")
+                    # TODO query the record_data from the DB, please
+                    record_data_from_DB = get_record_data_from_queried_record(
+                        session, record_data
+                    )
+                    st.write(record_data_from_DB)
+                    # TODO Output if artist, label etc. has been created/updated
 
     # Removal (Inactivation) Workflow - no real deletion from DB!
     elif trx_type == "Remove":
@@ -314,5 +317,35 @@ def create_record_data_for_removal(
         "is_active": 0,
         "removal_date": removal_date,
         "credit_value": credit_value,
+    }
+    return record_data
+
+
+def get_record_data_from_queried_record(
+    session: sqlalchemy.orm.session.Session, record_data: Dict
+):
+    """Query the newly added record in the DB and return it's data
+    in dict format for display in the frontend.
+    """
+    record = db_functions.fetch_a_record_from_the_shelf(
+        session, record_data["artist"], record_data["title"]
+    )
+    record_data = {
+        "record_id": record.record_id,
+        "artist": "; ".join([artist.artist_name for artist in record.artists]),
+        "title": record.title,
+        "genre": record.genre.genre_name,
+        "label": "; ".join([label.label_name for label in record.labels]),
+        "year": record.year,
+        "record_format": record.record_format.format_name,
+        "vinyl_color": record.vinyl_color,
+        "lim_edition": record.lim_edition,
+        "number": record.number,
+        "remarks": record.remarks,
+        "purchase_date": record.purchase_date,
+        "price": float(record.price),
+        "rating": record.rating,
+        "is_digitized": record.is_digitized,
+        "is_active": record.is_active,
     }
     return record_data
