@@ -89,14 +89,14 @@ def run(engine, Session):
                         record_data = create_record_data_for_removal(
                             record, trx_type, removal_date, credit_value
                         )
+                        db_functions.set_record_to_inactive(
+                            session, record_data
+                        )
+                        st.write("Record set to inactive.")
+                        record_data_from_DB = get_record_data_from_queried_record(
+                            session, record_data
+                        )
                         st.write(record_data)
-                        if record_data:
-                            commit: bool = st.checkbox("Commit Transaction.")
-                            if commit and isinstance(record_data, dict):
-                                db_functions.set_record_to_inactive(
-                                    session, record_data
-                                )
-                                st.write("Record set to inactive.")
 
     session.close()
 

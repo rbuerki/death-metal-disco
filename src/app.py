@@ -21,7 +21,9 @@ def get_engine_and_scoped_session():
     """Note: This function is defined in this module (and not in
     db_connect) because of the caching option.
     """
-    config_params = db_connect.read_yaml("config.yaml", "DB_PROD")
+    config_params = db_connect.read_yaml(
+        "config.yaml", "DB_PROD"
+    )  # NOTE: you can switch between "DB_PROD", "DB_DEV"
     engine = db_connect.create_engine(config_params)
     Session = db_connect.create_scoped_session(engine)
     return engine, Session
