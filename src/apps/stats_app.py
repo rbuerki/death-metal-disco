@@ -6,6 +6,7 @@ from src.apps import app_utils
 from src.db_declaration import (
     Artist,
     ArtistRecordLink,
+    RecordFormat,
     Label,
     LabelRecordLink,
     Record,
@@ -47,6 +48,7 @@ def run(engine, Session):
     st.table(top_sorted[["artist", "title", "rating"]].head(n_top))
     st.write("")
 
+    # Record Count by Genre - TODO analog zu format
     st.write("")
     st.write("Records by Rating:")
     st.table(
@@ -56,6 +58,7 @@ def run(engine, Session):
     )
     st.write("")
 
+    # Record Count by Genre - TODO analog zu format
     st.write("")
     st.write("Records by Genre:")
     st.table(
@@ -65,16 +68,30 @@ def run(engine, Session):
     )
     st.write("")
 
+    # Record Count by format
+    q_format = (
+        session.query(RecordFormat.format_name, func.count(Record.format_id))
+        .join(Record, RecordFormat.format_id == Record.format_id)
+        .filter(Record.is_active == 1)
+        .group_by(RecordFormat.format_name)
+        .order_by(func.count(Record.format_id).desc())
+    )
+
     st.write("")
     st.write("Records by Format:")
-    st.table(
-        rec_df_small.groupby("record_format")["title"]
-        .count()
-        .sort_values(ascending=False)
-    )
+    df = pd.read_sql(q_format.statement, q_format.session.bind)
+    df.set_index("format_name", drop=True, inplace=True)
+    st.table(df)
     st.write("")
 
-    # # TODO - not correct because of the splits, have to take from db
+    # st.table(
+    #     rec_df_small.groupby("record_format")["title"]
+    #     .count()
+    #     .sort_values(ascending=False)
+    # )
+    # st.write("")
+
+    # Record count by label
     q_label = (
         session.query(Label.label_name, func.count(LabelRecordLink.record_id))
         .join(LabelRecordLink, LabelRecordLink.label_id == Label.label_id)
@@ -90,7 +107,7 @@ def run(engine, Session):
     st.table(df)
     st.write("")
 
-    # # TODO - not correct because of the split, have to take from db
+    # Record count by artist
     q_artist = (
         session.query(
             Artist.artist_name, func.count(ArtistRecordLink.artist_id)

@@ -8,20 +8,15 @@
 
 PROD
 
-- [ ] ...
+- [ ] everflowing to ever flowing in Dismember record title
 
 DEV - PRIO 1
 
-- [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
-- [ ] CRUD: Artist Country often (always?) taken from previous record (updates) / sometimes Label (if the same artist, at least, see Tomb Mold)
+- [x] STATS: WIP, get stats directy from DB (halfway done ...)
 - [ ] STATS: % of total per Rating
-- [ ] RATINGS app
 
-DEV - PROBLEMS NOT SOLVED
-
-- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
+- [ ] CRUD: Updated fields taken from previously updated record as long as the "update" button is active / if they were empty before. Session State?
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
-- [ ] CRUD: Purchase - fill in artist country if artist exists
 
   ```python  
     from src import SessionState
@@ -29,9 +24,15 @@ DEV - PROBLEMS NOT SOLVED
     st_session_state.run_id += 1
   ```
 
-DEV - PRIO 2
+- [ ] CRUD UPDATE BUG (probably): if I update the title or artist, the record is not found for insertion ... that's gonna be hard - maybe set record_id aside then.
+- [ ] RATINGS app
 
-- [x] STATS: get stats directy from DB (halfway done, still some issues there ...)
+DEV - PROBLEMS NOT SOLVED
+
+- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
+- [ ] CRUD: Purchase - fill in artist country if artist exists
+
+DEV - PRIO 2
 
 - [ ] implement relationships for ratings table:
   - ... in db_declaration
