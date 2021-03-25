@@ -217,9 +217,7 @@ def display_record_update_form_and_return_data(record, trx_type: str) -> Dict:
     dictionary with the data updated by the user.
     """
     # # TODO bug tracking - can be deleted if solved
-    # x = st.write(
-    #     "; ".join([artist.artist_country for artist in record.artists])
-    # )
+    # x = "; ".join([artist.artist_country for artist in record.artists])
     # st.write(x)
 
     artist = st.text_input(

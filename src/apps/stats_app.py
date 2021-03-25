@@ -6,10 +6,11 @@ from src.apps import app_utils
 from src.db_declaration import (
     Artist,
     ArtistRecordLink,
-    RecordFormat,
+    Genre,
     Label,
     LabelRecordLink,
     Record,
+    RecordFormat,
 )
 
 
@@ -17,58 +18,66 @@ def run(engine, Session):
 
     session = Session()
 
-    # DataFrames
+    # DataFrames - TODO check if I really need them ... only for n_top ...
     _, rec_df_small = app_utils.create_record_dataframes(session)
     top_sorted = rec_df_small.sort_values(
         ["rating", "purchase_date"], ascending=False
     )
     top_sorted.index = range(1, len(top_sorted) + 1)
 
-    # TODO this sucks somehow
-    # q = session.query(Record.rating, func.count(Record.title)).group_by(
-    #     Record.rating
-    # )
-
-    # df = pd.read_sql(q.statement, q.session.bind)
-    # df.columns = ["rating", "record count"]
-    # df = df.replace("None", np.nan)
-    # df.set_index("rating", drop=True, inplace=True)
-    # st.table(df.sort_values("rating", ascending=False))
-
-    # st.write(rec_df_full[rec_df_full["rating"].notnull()])
-
     n_active = session.query(Record).filter(Record.is_active == 1).count()
     st.write("")
     st.write(f"Total Active Records in Collection: {n_active}")
     st.write("")
 
-    n_top = 15
+    # Top X by Rating & Date - TODO fix the artist name(s) display
+    # "; ".join([artist.artist_name for artist in record.artists]
+    n_top = 20
+    q_top_x = session.query(Record.title, Record.rating).order_by(
+        Record.rating.desc(), Record.purchase_date.desc()
+    )
+
     st.write("")
-    st.write(f"Top {n_top} Rated Records by Rating and Date:")
-    st.table(top_sorted[["artist", "title", "rating"]].head(n_top))
+    st.write(f"Top {n_top} Records by Rating and Date:")
+    df = pd.read_sql(q_top_x.statement, q_top_x.session.bind)
+    st.table(df.head(n_top))
     st.write("")
 
-    # Record Count by Genre - TODO analog zu format
+    # Record count by rating
+    q_rating = (
+        session.query(Record.rating, func.count(Record.format_id))
+        .filter(Record.is_active == 1)
+        .group_by(Record.rating)
+        .order_by(Record.rating.desc())
+    )
+
     st.write("")
     st.write("Records by Rating:")
-    st.table(
-        rec_df_small.groupby("rating", dropna=False)["title"]
-        .count()
-        .sort_index(ascending=False)
-    )
+    df = pd.read_sql(q_rating.statement, q_rating.session.bind)
+    df.set_index("rating", drop=True, inplace=True)
+    df["pct"] = df["count_1"] / sum(
+        (list(df["count_1"])[:-1])
+    )  # TODO make better
+    st.table(df)
     st.write("")
 
-    # Record Count by Genre - TODO analog zu format
+    # Record count by genre
+    q_genre = (
+        session.query(Genre.genre_name, func.count(Record.format_id))
+        .join(Record, Genre.genre_id == Record.genre_id)
+        .filter(Record.is_active == 1)
+        .group_by(Genre.genre_name)
+        .order_by(func.count(Record.format_id).desc())
+    )
+
     st.write("")
     st.write("Records by Genre:")
-    st.table(
-        rec_df_small.groupby("genre")["title"]
-        .count()
-        .sort_values(ascending=False)
-    )
+    df = pd.read_sql(q_genre.statement, q_genre.session.bind)
+    df.set_index("genre_name", drop=True, inplace=True)
+    st.table(df)
     st.write("")
 
-    # Record Count by format
+    # Record count by format
     q_format = (
         session.query(RecordFormat.format_name, func.count(Record.format_id))
         .join(Record, RecordFormat.format_id == Record.format_id)

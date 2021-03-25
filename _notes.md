@@ -8,12 +8,12 @@
 
 PROD
 
-- [ ] everflowing to ever flowing in Dismember record title
+- [ ] ...
 
 DEV - PRIO 1
 
-- [x] STATS: WIP, get stats directy from DB (halfway done ...)
-- [ ] STATS: % of total per Rating
+- [x] STATS: WIP, get stats directy from DB (nearly done ... 2x TODO)
+- [ ] STATS: WIP, % of total per Rating (1x TODO)
 
 - [ ] CRUD: Updated fields taken from previously updated record as long as the "update" button is active / if they were empty before. Session State?
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
