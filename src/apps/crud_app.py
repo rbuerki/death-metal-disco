@@ -151,7 +151,9 @@ def display_record_purchase_form_return_data(trx_type: str) -> Dict:
         "remarks": remarks if remarks != "" else None,
         "purchase_date": purchase_date,
         "price": price,
-        "rating": rating if rating != "" else None,
+        "rating": rating
+        if rating not in ["", "None"]
+        else None,  # TODO Check if that has solved the None problem
         "is_digitized": is_digitized,
         "is_active": is_active,
         "credit_value": credit_value,
@@ -216,10 +218,6 @@ def display_record_update_form_and_return_data(record, trx_type: str) -> Dict:
     actual values stored in the DB, which can be overwritten. Return a
     dictionary with the data updated by the user.
     """
-    # # TODO bug tracking - can be deleted if solved
-    # x = "; ".join([artist.artist_country for artist in record.artists])
-    # st.write(x)
-
     artist = st.text_input(
         "Artist",
         value="; ".join([artist.artist_name for artist in record.artists]),
