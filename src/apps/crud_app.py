@@ -25,17 +25,17 @@ def run(engine, Session):
     session = Session()
 
     trx_type: str = st.selectbox("Transaction Type", trx_types)
-    st.write("---")
 
     # Purchase Workflow
     if trx_type == "Purchase":
-        record_data = display_record_purchase_form_return_data(trx_type)
-        add: bool = st.button("Add Record")
+        st.write("")
+        with st.form(key="record_data_form"):
+            record_data = display_record_purchase_form_return_data(trx_type)
+            add: bool = st.form_submit_button("Add Record")
         if add and isinstance(record_data, dict):
             record_data = prepare_record_data_for_DB_insert(record_data)
             db_functions.add_new_record(session, record_data)
             st.write("Record inserted.")
-            # TODO query the record_data from the DB, please
             record_data_from_DB = get_record_data_from_queried_record(
                 session, record_data
             )
@@ -44,22 +44,23 @@ def run(engine, Session):
 
     # Update Workflow
     elif trx_type == "Update":
+        st.write("---")
         artist, title = display_record_select_form(session)
         if artist != "-" and title != "-":
             record = db_functions.fetch_a_record_from_the_shelf(
                 session, artist, title
             )
             if record is not None:
-                st.write("---")
-                record_data = display_record_update_form_and_return_data(
-                    record, trx_type
-                )
-                update: bool = st.button("Update Record")
+                st.write("")
+                with st.form(key="record_data_form"):
+                    record_data = display_record_update_form_and_return_data(
+                        record, trx_type
+                    )
+                    update: bool = st.form_submit_button("Update Record")
                 if update and isinstance(record_data, dict):
                     record_data = prepare_record_data_for_DB_insert(record_data)
                     db_functions.update_record(session, record_data)
                     st.write("Record updated.")
-                    # TODO query the record_data from the DB, please
                     record_data_from_DB = get_record_data_from_queried_record(
                         session, record_data
                     )
@@ -68,6 +69,7 @@ def run(engine, Session):
 
     # Removal (Inactivation) Workflow - no real deletion from DB!
     elif trx_type == "Remove":
+        st.write("---")
         artist, title = display_record_select_form(session)
         if artist != "-" and title != "-":
             record = db_functions.fetch_a_record_from_the_shelf(
