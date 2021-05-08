@@ -12,11 +12,17 @@ PROD
 
 DEV - PRIO 1
 
+- [ ] RECORDS: I load roftd from the dataframe. But need to fetch the DB data for update anyway. So I should go for the DB in the first place.
+- [ ] RECORDS: Add the update possiblity to all filtered records, please. COOL! (And fetch them from the DB too ...)
+
 - [x] STATS: WIP, get stats directy from DB (nearly done ... 2x TODO)
 - [ ] STATS: WIP, % of total per Rating (1x TODO)
 
+- [ ] CREDIT TRX: Display date properly, check if i can display artists too, please.
+
 - [ ] CRUD: Updated fields taken from previously updated record as long as the "update" button is active / if they were empty before. Session State?
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
+- [ ] CRUD: Note, st.form() did not help with this problem but "We are currently working on functionality that allows you to programmatically reset all widgets when the submit button is clicked. This should be added in an upcoming release."
 
   ```python  
     from src import SessionState
@@ -29,7 +35,6 @@ DEV - PRIO 1
 
 DEV - PROBLEMS NOT SOLVED
 
-- [ ] RECS: for every displayed record have a direct link to the update page, passing record and artist - if possible ...
 - [ ] CRUD: Purchase - fill in artist country if artist exists
 
 DEV - PRIO 2
