@@ -12,13 +12,12 @@ PROD
 
 DEV - PRIO 1
 
-- [ ] RECORDS: I load roftd from the dataframe. But need to fetch the DB data for update anyway. So I should go for the DB in the first place.
-- [ ] RECORDS: Add the update possiblity to all filtered records, please. COOL! (And fetch them from the DB too ...)
+- [ ] RECS: Tought I had the update fixed with st.from, but NO! Still reruns before writing the update into the DB, even if the update is within the with statement
+- [ ] RECS: I load roftd from the dataframe. But need to fetch the DB data for update anyway. So I should go for the DB in the first place.
+- [ ] RECS: Add the update possiblity to all filtered records, please. COOL! (And fetch them from the DB too ...)
 
 - [x] STATS: WIP, get stats directy from DB (nearly done ... 2x TODO)
 - [ ] STATS: WIP, % of total per Rating (1x TODO)
-
-- [ ] CREDIT TRX: Display date properly, check if i can display artists too, please.
 
 - [ ] CRUD: Updated fields taken from previously updated record as long as the "update" button is active / if they were empty before. Session State?
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
