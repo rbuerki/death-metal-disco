@@ -1,5 +1,6 @@
 from typing import Any, List, Tuple
 
+import datetime as dt
 import pandas as pd
 import sqlalchemy
 import streamlit as st
@@ -71,6 +72,7 @@ def create_record_dataframes(
             .str.replace("]", "")
             .str.replace("'", "")
         )
+    rec_df_full["purchase_date"] = rec_df_full["purchase_date"].dt.date
     rec_df_full.sort_values("purchase_date", inplace=True)
     rec_df_active = rec_df_full[rec_df_full["is_active"] == 1]
     rec_df_small = rec_df_active.set_index("record_id", drop=True)
@@ -99,7 +101,9 @@ def create_trx_dataframe(
 
         record_data_dict = {
             "credit_trx_id": result.credit_trx_id,
-            "credit_trx_date": result.credit_trx_date,
+            "credit_trx_date": dt.datetime.strftime(
+                result.credit_trx_date, "%Y-%m-%d"
+            ),
             "credit_trx_type": result.credit_trx_type,
             "credit_value": result.credit_value,
             "credit_saldo": result.credit_saldo,
@@ -110,7 +114,6 @@ def create_trx_dataframe(
         dict_list.append(record_data_dict)
 
     trx_df = pd.DataFrame(dict_list, columns=dict_list[0].keys())
-    trx_df["credit_trx_date"] = trx_df["credit_trx_date"].astype("datetime64")
 
     return trx_df
 
