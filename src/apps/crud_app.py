@@ -119,7 +119,7 @@ def display_record_purchase_form_return_data(trx_type: str) -> Dict:
     label = st.text_input("Label (separate multiple labels with ';')")
     year = st.number_input("Year", value=dt.date.today().year, format="%d")
     record_format = st.selectbox("Format", app_utils.record_format_list, 4)
-    vinyl_color = st.text_input("Vinyl Color").lower()
+    vinyl_color = st.text_input("Vinyl Color", value="black").lower()
     lim_edition = st.text_input("Lim Edition")
     number = st.text_input("Number")
     remarks = st.text_input("Remarks")
