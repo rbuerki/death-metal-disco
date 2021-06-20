@@ -12,12 +12,9 @@ PROD
 
 DEV - PRIO 1
 
-- [ ] RECS: Tought I had the update fixed with st.from, but NO! Still reruns before writing the update into the DB, even if the update is within the with statement
-- [ ] RECS: I load roftd from the dataframe. But need to fetch the DB data for update anyway. So I should go for the DB in the first place.
-- [ ] RECS: Add the update possiblity to all filtered records, please. COOL! (And fetch them from the DB too ...)
-
 - [x] STATS: WIP, get stats directy from DB (nearly done ... 2x TODO)
 - [ ] STATS: WIP, % of total per Rating (1x TODO)
+- [ ] STATS / CRUD: Still "None" entries for Ratings. Maybe I should change ratings to int, with None=0 -> alter schema of DB
 
 - [ ] CRUD: Updated fields taken from previously updated record as long as the "update" button is active / if they were empty before. Session State?
 - [ ] CRUD: clear all input in crud_app.py ... see [here](https://discuss.streamlit.io/t/reset-multiselect-to-default-values-using-a-checkbox/1941)
@@ -35,6 +32,11 @@ DEV - PRIO 1
 DEV - PROBLEMS NOT SOLVED
 
 - [ ] CRUD: Purchase - fill in artist country if artist exists
+
+- [ ] RECS: Tought I had the update fixed with st.from, but NO! Still reruns before writing the update into the DB, even if the update is within the with statement
+- [ ] (If I cannot fix that, I don't have to the next two ...)
+- [ ] RECS: I load ROTD from the dataframe. But need to fetch the DB data for update anyway. So I should go for the DB in the first place.
+- [ ] RECS: Add the update possiblity to all filtered records, please. COOL! (And fetch them from the DB too ...)
 
 DEV - PRIO 2
 

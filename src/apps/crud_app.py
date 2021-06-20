@@ -10,8 +10,8 @@ from src.db_declaration import Artist, Record
 
 
 trx_types = [
-    "Update",
     "Purchase",
+    "Update",
     "Remove",
 ]
 
