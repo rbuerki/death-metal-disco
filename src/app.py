@@ -1,6 +1,6 @@
 import streamlit as st
 
-import src.db_connect as db_connect
+from src import db_functions, db_connect
 from src.MultiApp import MultiApp
 from src.apps import crud_app, recs_app, stats_app, trx_app
 
@@ -38,6 +38,10 @@ multiapp.add_app("Records", recs_app.run)
 multiapp.add_app("Credit Trx", trx_app.run)
 multiapp.add_app("Stats", stats_app.run)
 multiapp.add_app("CRUD Operations", crud_app.run)
+
+# Check for regular credit additions
+session = Session()
+db_functions.add_regular_credits(session)
 
 # Run the main app
 multiapp.run_app(engine, Session)

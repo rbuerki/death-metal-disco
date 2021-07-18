@@ -10,6 +10,7 @@ CONFIG_PATH = (Path.cwd() / "config.yaml").absolute()
 
 
 def main():
+    """This is for manual manipulation only!"""
     engine, session = db_connect.get_engine_and_session()
     print(engine)
     print(session)
