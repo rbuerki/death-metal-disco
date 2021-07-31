@@ -2,7 +2,7 @@ import streamlit as st
 
 from src import db_functions, db_connect
 from src.MultiApp import MultiApp
-from src.apps import crud_app, recs_app, stats_app, trx_app
+from src.apps import crud_app, lists_app, recs_app, stats_app, trx_app
 
 
 st.set_page_config(
@@ -38,6 +38,7 @@ multiapp.add_app("Records", recs_app.run)
 multiapp.add_app("Credit Trx", trx_app.run)
 multiapp.add_app("Stats", stats_app.run)
 multiapp.add_app("CRUD Operations", crud_app.run)
+multiapp.add_app("Lists", lists_app.run)
 
 # Check for regular credit additions
 session = Session()
