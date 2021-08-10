@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import date
 from src.db_declaration import Record
+from src.apps.app_utils import record_format_list
 
 
 def run(engine, Session):
@@ -22,6 +23,15 @@ def run(engine, Session):
     st.sidebar.write("\n\nDate Range:")
     max_date = st.sidebar.date_input("Max Date", value=max_date_default)
     min_date = st.sidebar.date_input("Min Date", value=min_date_default)
+
+    large_format_only = st.sidebar.checkbox('Exklude 7" records and tapes')
+
+    if large_format_only:
+        sevens_and_tapes = ['7"', 'Pic-7"', "Tape"]
+        large_format_list = [
+            fmt for fmt in record_format_list if fmt not in sevens_and_tapes
+        ]
+        # TODO inlcude in statements if param is set
 
     if choice == "all of them":
         record_list = (
