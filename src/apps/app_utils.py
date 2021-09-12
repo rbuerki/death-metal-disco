@@ -125,7 +125,7 @@ def display_collection_table(df: pd.DataFrame, **kwargs):
     """
     st.dataframe(
         df.style.format(
-            {"price": "{:,.2f}", "rating": "{:.0f}"}, na_rep="-"
+            na_rep="-", formatter={"price": "{:,.2f}", "rating": "{:.0f}"}
         ).applymap(
             _set_color_grey,
             subset=pd.IndexSlice[df.index[df["is_active"] == 0], :],
@@ -140,8 +140,7 @@ def display_a_pretty_record_table(series: pd.Series):
     """
     df = series.to_frame()
     st.table(
-        df.style.format({}, na_rep="-")
-        .set_precision(2)
+        df.style.format(precision=2, na_rep="-",)
         .set_properties(**{"max-width": "400px", "min-width": "400px"})
         .applymap(
             _set_color_purple,
