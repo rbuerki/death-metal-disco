@@ -12,9 +12,6 @@ PROD
 
 DEV - PRIO 1
 
-- [ ] LISTS: exklude small formats when param is set - the code is prepared, but the checkbox has no effect yet
-- [ ] Print the number of records in the subtitle, please
-
 - [x] STATS: WIP, get stats directy from DB (nearly done ... 2x TODO)
 - [ ] STATS: WIP, % of total per Rating (1x TODO)
 - [ ] STATS / CRUD: Still "None" entries for Ratings. Maybe I should change ratings to int, with None=0 -> alter schema of DB
