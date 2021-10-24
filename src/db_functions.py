@@ -76,15 +76,14 @@ def check_if_artist_exists_or_create(
     """
     artist_list = []
     for n, a in enumerate(r_artist):
-        artist = (
-            session.query(Artist)
-            .filter(Artist.artist_name.ilike(a))
-            .one_or_none()
-        )
+        artist = session.query(Artist).filter(Artist.artist_name.ilike(a)).one_or_none()
         if artist:
             artist.artist_country = r_artist_country[n]
         if artist is None:
-            artist = Artist(artist_name=a, artist_country=r_artist_country[n],)
+            artist = Artist(
+                artist_name=a,
+                artist_country=r_artist_country[n],
+            )
             session.add(artist)
 
         artist_list.append(artist)
@@ -92,7 +91,8 @@ def check_if_artist_exists_or_create(
 
 
 def check_if_label_exists_or_create(
-    session: sqlalchemy.orm.session.Session, r_label: Sequence[str],
+    session: sqlalchemy.orm.session.Session,
+    r_label: Sequence[str],
 ) -> List[Label]:
     """For every label name in the passed list, check if a
     Label object of same name already exists, if not instantiate
@@ -101,11 +101,7 @@ def check_if_label_exists_or_create(
     """
     label_list = []
     for lab in r_label:
-        label = (
-            session.query(Label)
-            .filter(Label.label_name.ilike(lab))
-            .one_or_none()
-        )
+        label = session.query(Label).filter(Label.label_name.ilike(lab)).one_or_none()
         if label is None:
             label = Label(label_name=lab)
             session.add(label)
@@ -115,7 +111,8 @@ def check_if_label_exists_or_create(
 
 
 def check_if_format_exists_or_create(
-    session: sqlalchemy.orm.session.Session, r_format: str,
+    session: sqlalchemy.orm.session.Session,
+    r_format: str,
 ) -> RecordFormat:
     """Check if a RecordFormat format object of same name already
     exists, if not instantiate it. In any case return the
@@ -134,18 +131,15 @@ def check_if_format_exists_or_create(
 
 
 def check_if_genre_exists_or_create(
-    session: sqlalchemy.orm.session.Session, r_genre: str,
+    session: sqlalchemy.orm.session.Session,
+    r_genre: str,
 ) -> Genre:
     """Check if a RecordFormat format object of same name already
     exists, if not instantiate it. In any case return the
     RecordFormat instance (will be used to update the
     relationships).
     """
-    genre = (
-        session.query(Genre)
-        .filter(Genre.genre_name.ilike(r_genre))
-        .one_or_none()
-    )
+    genre = session.query(Genre).filter(Genre.genre_name.ilike(r_genre)).one_or_none()
     if genre is None:
         genre = Genre(genre_name=r_genre)
         session.add(genre)
@@ -254,9 +248,7 @@ def add_new_record(
     # Check if record already exists
     record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
     if record is not None:
-        print(
-            f"Record '{r_title}' by {r_artist} already exists, insert skipped."
-        )
+        print(f"Record '{r_title}' by {r_artist} already exists, insert skipped.")
         return None
 
     if record is None:
@@ -282,9 +274,7 @@ def add_new_record(
     session.commit()
 
 
-def update_record(
-    session: sqlalchemy.orm.session.Session, record_data: Dict[str, Any]
-):
+def update_record(session: sqlalchemy.orm.session.Session, record_data: Dict[str, Any]):
     """Update the properties of an existing record in the DB.
     The record data is passed as a dictionary and data that
     has changed will be updated to the new values. Except of that
@@ -303,9 +293,7 @@ def update_record(
     record = fetch_a_record_from_the_shelf(session, r_artist, r_title)
 
     if record is None:
-        print(
-            f"Record '{r_title}' by {r_artist} not found in DB, cannot update."
-        )
+        print(f"Record '{r_title}' by {r_artist} not found in DB, cannot update.")
         return None
 
     if record is not None:
@@ -343,9 +331,7 @@ def update_record(
     session.commit()
 
 
-def set_record_to_inactive(
-    session: sqlalchemy.orm.session.Session, record_data: Dict
-):
+def set_record_to_inactive(session: sqlalchemy.orm.session.Session, record_data: Dict):
     """Set a the status of a record to inactive. This is equivalent
     to a removal, because records are never fully deleted. This also
     triggers a transaction with type "Removal" and can lead to a
@@ -410,9 +396,7 @@ def add_regular_credits(
             record_id=np.nan,
         )
         session.add(addition_trx)
-        last_addition_date, days_since_last = _get_days_since_last_addition(
-            session
-        )
+        last_addition_date, days_since_last = _get_days_since_last_addition(session)
 
     session.commit()
 
@@ -475,9 +459,7 @@ def _load_record_related_data_to_df(
         record_data_dict = {
             "record_id": result.record_id,
             "artist": [artist.artist_name for artist in result.artists],
-            "artist_country": [
-                artist.artist_country for artist in result.artists
-            ],
+            "artist_country": [artist.artist_country for artist in result.artists],
             "title": result.title,
             "genre": result.genre.genre_name,
             "label": [label.label_name for label in result.labels],
@@ -505,14 +487,9 @@ def _load_record_related_data_to_df(
         records_df[col] = records_df[col].astype(bool)
     for col in ["rating", "price"]:
         records_df[col] = records_df[col].astype(float)
-    records_df["purchase_date"] = records_df["purchase_date"].astype(
-        "datetime64"
-    )
+    records_df["purchase_date"] = records_df["purchase_date"].astype("datetime64")
 
-    if (
-        not records_df.index.is_monotonic_increasing
-        and not records_df.index.is_unique
-    ):
+    if not records_df.index.is_monotonic_increasing and not records_df.index.is_unique:
         raise AssertionError("record_ids are messed up, please check data.")
 
     return df_name, records_df
@@ -548,9 +525,7 @@ def _save_df_to_parquet(df_tuple: Tuple[str, pd.DataFrame], config_path: Path):
     Called within `export_db_data_to_2_parquet_files`.
     """
     df_name, df = df_tuple
-    datetime_stamp = dt.datetime.strftime(
-        dt.datetime.now(), "%Y-%m-%d-%H-%M-%S"
-    )
+    datetime_stamp = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d-%H-%M-%S")
 
     back_up_params = db_connect.read_yaml(config_path, "BACK_UP")
     rel_path = back_up_params["REL_PATH"]
@@ -644,7 +619,7 @@ def _insert_record_data_with_sqlalchemy_orm(
 def _truncate_credit_trx_table(
     engine: sqlalchemy.engine.Engine,
     Base,  #: sqlalchemy.ext.declarative.AbstractConcreteBase,
-    table_class: sqlalchemy.ext.declarative.api.DeclarativeMeta = CreditTrx,
+    table_class: sqlalchemy.ext.declarative.DeclarativeMeta = CreditTrx,
 ):
     """Workaround for truncating the credit_trx table to get rid of
     the entries that where created during the data import.
@@ -661,7 +636,7 @@ def _truncate_credit_trx_table(
 def _insert_trx_data_with_sqlalchemy_core(
     engine: sqlalchemy.engine.Engine,
     trx_data: pd.DataFrame,
-    table_class: sqlalchemy.ext.declarative.api.DeclarativeMeta = CreditTrx,
+    table_class: sqlalchemy.ext.declarative.DeclarativeMeta = CreditTrx,
 ):
     """Copy the original trx_data into the empty credit_trx table
     using the speedy 'bulk' insert function from sqlalchemy's core
