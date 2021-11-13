@@ -88,9 +88,7 @@ def create_trx_dataframe(
     credit_trx table, including the record titles for better
     orientation. Used in the trx_app.
     """
-    result_list = (
-        session.query(CreditTrx).order_by(CreditTrx.credit_trx_id).all()
-    )
+    result_list = session.query(CreditTrx).order_by(CreditTrx.credit_trx_id).all()
     dict_list = []
 
     for result in result_list:
@@ -101,9 +99,7 @@ def create_trx_dataframe(
 
         record_data_dict = {
             "credit_trx_id": result.credit_trx_id,
-            "credit_trx_date": dt.datetime.strftime(
-                result.credit_trx_date, "%Y-%m-%d"
-            ),
+            "credit_trx_date": dt.datetime.strftime(result.credit_trx_date, "%Y-%m-%d"),
             "credit_trx_type": result.credit_trx_type,
             "credit_value": result.credit_value,
             "credit_saldo": result.credit_saldo,
@@ -140,19 +136,18 @@ def display_a_pretty_record_table(series: pd.Series):
     """
     df = series.to_frame()
     st.table(
-        df.style.format(precision=2, na_rep="-",)
+        df.style.format(
+            precision=2,
+            na_rep="-",
+        )
         .set_properties(**{"max-width": "400px", "min-width": "400px"})
         .applymap(
             _set_color_purple,
-            subset=pd.IndexSlice[
-                df.index[df.index.isin(["artist", "title"])], :
-            ],
+            subset=pd.IndexSlice[df.index[df.index.isin(["artist", "title"])], :],
         )
         .applymap(
             _set_bold_font,
-            subset=pd.IndexSlice[
-                df.index[df.index.isin(["artist", "title"])], :
-            ],
+            subset=pd.IndexSlice[df.index[df.index.isin(["artist", "title"])], :],
         )
     )
 
@@ -166,7 +161,7 @@ def _set_color_grey(val: Any) -> str:
 
 def _set_color_purple(val: Any) -> str:
     """Take a scalar and return a string with css property.
-    (Called within `display_a record_table`.)
+    (Called within `display_a_pretty_record_table`.)
     """
     return "color: purple"  # streamlit's primary color: #f63366
 

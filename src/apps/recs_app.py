@@ -26,15 +26,13 @@ def run(engine, Session):
     app_utils.display_collection_table(rec_df_full, width=None, height=100)
     st.write("")
 
-    # Filter the records according to sidetable
+    # Filter the records according to sidebar filters
     if artist:
         rec_df_small = rec_df_small[
             rec_df_small["artist"].str.lower().str.contains(artist.lower())
         ]
     if title:
-        rec_df_small = rec_df_small[
-            rec_df_small["title"].str.lower() == title.lower()
-        ]
+        rec_df_small = rec_df_small[rec_df_small["title"].str.lower() == title.lower()]
     if label:
         rec_df_small = rec_df_small[
             rec_df_small["label"].str.lower().str.contains(label.lower())
@@ -44,9 +42,7 @@ def run(engine, Session):
             rec_df_small["record_format"].str.lower() == record_format.lower()
         ]
     if genre:
-        rec_df_small = rec_df_small[
-            rec_df_small["genre"].str.lower() == genre.lower()
-        ]
+        rec_df_small = rec_df_small[rec_df_small["genre"].str.lower() == genre.lower()]
     if year != 0:
         rec_df_small = rec_df_small[rec_df_small["year"] == year]
     if rating[1] != 0:
