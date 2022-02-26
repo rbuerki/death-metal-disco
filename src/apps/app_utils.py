@@ -15,6 +15,7 @@ genre_list = [
     "Crust",
     "Death Metal",
     "Grindcore",
+    "Heavy Metal",
     "Hardcore",
     "Punk",
     "Speed Metal",
@@ -135,6 +136,9 @@ def display_a_pretty_record_table(series: pd.Series):
     for a single record.
     """
     df = series.to_frame()
+    # TODO Bugfix - set everything to dtype string, but this kills the styling defined further below ...
+    for col in df.columns:
+        df[col] = df[col].astype(str)
     st.table(
         df.style.format(
             precision=2,
